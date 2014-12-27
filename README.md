@@ -11,4 +11,7 @@ AssemblerWebApp does the assembling web app for that assembler and simulator I w
 
 VimWebApp allows people to like and share code from VIM to facebook.
 
+The SerialHandler and WebSockets are for interfacing with the Arduino board connected to my server.
+
+
 The other files do things.
