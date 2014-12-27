@@ -30,7 +30,7 @@ void VimWebApp::HandleRequest(const string& file, ContentHost* contentHost, int 
 						</html>)";
 	const string fullPage = pageHeader + codeLine + pageEnd;
 
-	Page* newPage = new Page("asdf", "vim", fullPage);
+	const Page* const newPage = new const Page("asdf", "vim", fullPage);
 
 	this->server->SendPage(newPage, clientSocket);
 	delete newPage;

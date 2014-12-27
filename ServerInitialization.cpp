@@ -106,7 +106,7 @@ bool Server::initializeTCPSocket()
 
 bool Server::listenSocket()
 {
-	int res = listen(this->serverSocket, SOMAXCONN);
+	auto res = listen(this->serverSocket, SOMAXCONN);
 
 	//u_long iMode = 1;
 	//ioctlsocket(this->serverSocket, FIONBIO, &iMode);

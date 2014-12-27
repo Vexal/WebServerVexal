@@ -66,9 +66,6 @@ void Server::Update()
 
 bool Server::checkForNewConnection()
 {
-	int clientSocket;
-	clientSocket = INVALID_SOCKET;
-
 	sockaddr clientAddress;
 	socklen_t clientAddressLength = sizeof(clientAddress);
 	fd_set readSet;
@@ -76,16 +73,12 @@ bool Server::checkForNewConnection()
 	FD_SET(this->serverSocket, &readSet);
 
 	//block here until a connection is found.
-	clientSocket = accept(this->serverSocket, &clientAddress, &clientAddressLength);
+	const auto clientSocket = accept(this->serverSocket, &clientAddress, &clientAddressLength);
 
-	if (clientSocket < 0)
+	if (clientSocket < 0 || clientSocket == INVALID_SOCKET)
 	{
+			cout << "inv" << endl;
 		closesocket2(clientSocket);
-		return false;
-	}
-	else if (clientSocket == INVALID_SOCKET)
-	{
-		cout << "inv" << endl;
 		return false;
 	}
 
@@ -141,47 +134,44 @@ void Server::handleClientRequest(const string& request, int clientSocket, const 
 void Server::handleHTTPGetRequest(const string& request, int clientSocket, const string& clientAddressString)
 {
 	const size_t connectionPosition = request.find("Connection: ");
-	string connectionString;
 	if (connectionPosition != string::npos)
 	{
 		const size_t connectionPositionEnd = request.find_first_of('\r', connectionPosition + 12);
-		connectionString = request.substr(connectionPosition + 12, connectionPositionEnd - connectionPosition - 12);
-	}
-
-	if (connectionString == "Upgrade")
-	{
-		//The client is attempting to initialize a WebSocket protocol connection
-		this->initializeWebSocketConnection(clientSocket, request);
-		this->maintainWebSocketConnection(clientSocket);
-	}
-	else
-	{
-		ClientRequest clientRequest = { clientAddressString, "", "", "", "", "", "", "" };
-
-		this->parseClientHeader(request, clientRequest);
-		this->writeClientLog(clientRequest);
-
-		auto potentialClient = this->virtualServers.find("Content/");
-		if (potentialClient != this->virtualServers.end())
+		const string connectionString = request.substr(connectionPosition + 12, connectionPositionEnd - connectionPosition - 12);
+		if (connectionString == "Upgrade")
 		{
-			//separate app arguments from app name.
-			const auto firstQuestionMarkInd = clientRequest.requestTarget.find("?");
+			//The client is attempting to initialize a WebSocket protocol connection
+			this->initializeWebSocketConnection(clientSocket, request);
+			this->maintainWebSocketConnection(clientSocket);
+			return;
+		}
+	}
 
-			const string appName = firstQuestionMarkInd != string::npos ?
-				clientRequest.requestTarget.substr(1, firstQuestionMarkInd - 1) :
-				clientRequest.requestTarget;
+	ClientRequest clientRequest = { clientAddressString, "", "", "", "", "", "", "" };
 
-			const auto potentialWebApp = this->webApps.find(appName);
+	this->parseClientHeader(request, clientRequest);
+	this->writeClientLog(clientRequest);
 
-			//invoke web app if it exists, else handle request as web page.
-			if (potentialWebApp != this->webApps.end())
-			{
-				potentialWebApp->second->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
-			}
-			else
-			{
-				this->webApps["web"]->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
-			}
+	auto potentialClient = this->virtualServers.find("Content/");
+	if (potentialClient != this->virtualServers.end())
+	{
+		//separate app arguments from app name.
+		const auto firstQuestionMarkInd = clientRequest.requestTarget.find("?");
+
+		const string appName = firstQuestionMarkInd != string::npos ?
+			clientRequest.requestTarget.substr(1, firstQuestionMarkInd - 1) :
+			clientRequest.requestTarget;
+
+		const auto potentialWebApp = this->webApps.find(appName);
+
+		//invoke web app if it exists, else handle request as web page.
+		if (potentialWebApp != this->webApps.end())
+		{
+			potentialWebApp->second->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
+		}
+		else
+		{
+			this->webApps["web"]->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
 		}
 	}
 }
@@ -242,15 +232,15 @@ bool Server::SendPage(const Page* const page, int clientSocket, int statusCode)
 
 		const string l1 = "HTTP/1.1 " + status + "\r\n";
 		const string l2 = "Content-Type: " + contentType + "/" + pageType + "; charset=utf-8\r\n";
-		const string l3 = "Content-Length: " + std::to_string(page->GetContentLength()) + "\r\n";
+		const string l3 = "Content-Length: " + to_string(page->GetContentLength()) + "\r\n";
 		const string content = string(page->GetContent(), page->GetContentLength());
 
 		const string finalPage = l1 + l2 + l3 + "\r\n" + content;
-		const size_t iSendResult2 = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
+		const auto iSendResult2 = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
 
-		if (iSendResult2 == SOCKET_ERROR || iSendResult2 <0) 
+		if (iSendResult2 == SOCKET_ERROR || iSendResult2 < 0) 
 		{
-			std::cout << "Send failed with error: " << std::endl;
+			cout << "Send failed with error: " << endl;
 			PostError();
 			closesocket2(clientSocket);
 			return false;

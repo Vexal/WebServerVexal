@@ -68,15 +68,33 @@ void AssemblerWebApp::HandleRequest(const string & request, ContentHost* content
 		replaceTokens.push_back("~16b");
 		replaceTexts.push_back(" checked");
 	}
+	if (rest.length() <= finalCodeInd + 9)
+	{
+		errorText += "missing code";
+	}
 	if (file.find("username=") == string::npos)
 	{
 		errorText += "missing user name\n";
 	}
 	else
 	{
-		const int nextAmpersand = rest.find("&");
-		userName = rest.substr(18, nextAmpersand - 18);
-		cout << "Initiating a compile for user " << userName << endl;
+		const auto nextAmpersand = rest.find("&");
+		if (nextAmpersand != string::npos)
+		{
+			userName = rest.substr(18, nextAmpersand - 18);
+			if (userName.length() > 0)
+			{
+				cout << "Initiating a compile for user " << userName << endl;
+			}
+			else
+			{
+				errorText += "Username too short\n";
+			}
+		}
+		else
+		{
+			errorText += "Invalid user name format\n";
+		}
 	}
 
 	if (errorText == "")
@@ -103,17 +121,20 @@ void AssemblerWebApp::HandleRequest(const string & request, ContentHost* content
 		int stepCt = ourAssembler.GetMachineCode().size();
 		string stepCount = to_string(stepCt);
 
-		if (useSimulator)
+		if (useSimulator && file.length() > stepCountInd + 1)
 		{
-			const int nextAmpersand = file.substr(stepCountInd + 1).find("&");
-			const string stepCount2 = file.substr(stepCountInd + strlen("&stepcount="), (nextAmpersand)-strlen("&stepcount=") + 1);
-			stringstream sp(stepCount2);
-			int sentStep = 0;
-			sp >> sentStep;
-			if (sentStep > stepCt && sentStep < 600)
+			const auto nextAmpersand = file.substr(stepCountInd + 1).find("&");
+			if (nextAmpersand != string::npos)
 			{
-				stepCt = sentStep;
-				stepCount = stepCount2;
+				const string stepCount2 = file.substr(stepCountInd + strlen("&stepcount="), (nextAmpersand)-strlen("&stepcount=") + 1);
+				stringstream sp(stepCount2);
+				unsigned int sentStep = 0;
+				sp >> sentStep;
+				if (sentStep > stepCt && sentStep < 600)
+				{
+					stepCt = sentStep;
+					stepCount = stepCount2;
+				}
 			}
 		}
 
@@ -122,9 +143,6 @@ void AssemblerWebApp::HandleRequest(const string & request, ContentHost* content
 		replaceTokens.push_back("~sim");
 
 
-		/*const string firstHalf = "<textarea spellcheck='false' rows = '30' cols = '130' name = 'simval' readonly>";
-		const string secondHalf = "</textarea>";
-		*/
 		const string firstHalf = "<pre cols='130' style='border-style:solid; height:500px; overflow-y:scroll; background-color:white;' name='simval'>";
 		const string secondHalf = "</pre>";
 

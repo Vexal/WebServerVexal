@@ -76,8 +76,7 @@ Instruction Assembler::parseLine(const string& line, int currentLine)
 		return parsedInstruction;
 	}
 
-	const int hasPeriod = instructionName.find(".");
-	if (hasPeriod >= 0)
+	if (instructionName.find(".") != string::npos)
 	{
 		parsedInstruction.invalid = true;
 
@@ -100,8 +99,7 @@ Instruction Assembler::parseLine(const string& line, int currentLine)
 
 	if (this->isParsingData)
 	{
-		const int isHex = line.find("0x");
-		if (isHex < 0)
+		if (line.find("0x") == string::npos)
 		{
 			//check if label
 			const auto label = labels.find(instructionName);
@@ -130,8 +128,8 @@ Instruction Assembler::parseLine(const string& line, int currentLine)
 	if (opcode == this->opcodes.end())
 	{
 		parsedInstruction.invalid = true;
-		const int ind = instructionName.find(':');
-		if (ind < 0)
+		const auto ind = instructionName.find(':');
+		if (ind == string::npos)
 		{ 
 			//is not a label
 			this->errorText += "ERROR: Invalid opcode " + instructionName + " at line " + to_string(currentLine) + "\n";
@@ -242,23 +240,21 @@ bool Assembler::findLabels(string input)
 			continue;
 		}
 
-		const int ind = nextLine.find(':');
-		if (ind >= 0)
+		const auto ind = nextLine.find(':');
+		if (ind != string::npos)
 		{
 			const string newLabel = nextLine.substr(0, ind);
-			const int hasH = newLabel.find('h');
-			if (this->useHProtection && hasH > -1)
+			if (this->useHProtection && newLabel.find('h') != string::npos)
 			{
 				this->errorText += "ERROR: label '" + newLabel + "' contains the letter 'h'.\n";
 				return false; 
 			}
+
 			this->labels[newLabel] = lineCount;
 		}
 		else
 		{
-			const int skipInd = nextLine.find(".skip");
-
-			if (skipInd >= 0)
+			if (nextLine.find(".skip") != string::npos)
 			{
 				stringstream inpl(nextLine);
 				string s;
@@ -271,8 +267,7 @@ bool Assembler::findLabels(string input)
 			}
 			else
 			{
-				const int skipDotInd = nextLine.find(".");
-				if (skipDotInd < 0)
+				if (nextLine.find(".") == string::npos)
 					++lineCount;
 			}
 		}

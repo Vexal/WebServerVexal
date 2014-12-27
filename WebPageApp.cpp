@@ -20,11 +20,6 @@ void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentH
 
 	if (page != NULL)
 	{
-		if (page->GetName() == "Switch.html")
-		{
-			//this->handleSwitch();
-		}
-
 		if (page->GetPageType() == PageType::HTML)
 		{
 			const Page* const constructedPage = this->ConstructPage(page, dir);
@@ -51,7 +46,7 @@ Page const* WebPageApp::ConstructPage(const Page* const page, const Folder* cons
 
 	while (dollarSignPosition != string::npos)
 	{
-		const int foundPosition = dollarSignPosition;
+		const auto foundPosition = dollarSignPosition;
 		const auto delimeterPosition = pageContent.find("=", dollarSignPosition + 1);
 		const string operation = pageContent.substr(dollarSignPosition + 2, delimeterPosition - dollarSignPosition - 2);
 		const auto eraseEnd = pageContent.find("}", foundPosition);
