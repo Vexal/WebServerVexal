@@ -10,7 +10,7 @@ static const std::string base64_chars =
 
 static const std::string webSocketHeader = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ";
 
-void Server::initializeWebSocketConnection(Client* client, int clientSocket, const std::string& request)
+void Server::initializeWebSocketConnection(int clientSocket, const std::string& request)
 {
 	using namespace std;
 
@@ -121,7 +121,7 @@ void Server::initializeWebSocketConnection(Client* client, int clientSocket, con
 }
 
 //for sending messages whose length can be described with one byte
-void Server::sendWebSocketMessageShort(Client* client, int clientSocket, const std::string& message)
+void Server::sendWebSocketMessageShort(int clientSocket, const std::string& message)
 {
 	using namespace std; 
 	char* fullMessage = new char[message.size() + 2];
@@ -133,7 +133,7 @@ void Server::sendWebSocketMessageShort(Client* client, int clientSocket, const s
 	delete[] fullMessage;
 }
 
-void Server::maintainWebSocketConnection(Client* client, int clientSocket)
+void Server::maintainWebSocketConnection(int clientSocket)
 {
 	using namespace std;
 
@@ -242,7 +242,7 @@ void Server::maintainWebSocketConnection(Client* client, int clientSocket)
 		else if (decodedMessage == "testrequest")
 		{
 			cout << "Received server test request.  Sending response." << endl;
-			this->sendWebSocketMessageShort(client, clientSocket, "The Server Apparently Works");
+			this->sendWebSocketMessageShort(clientSocket, "The Server Apparently Works");
 		}
 		else if (decodedMessage == "turnleft")
 		{

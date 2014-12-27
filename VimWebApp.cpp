@@ -9,7 +9,7 @@ VimWebApp::VimWebApp(Server* server) :
 {
 }
 
-void VimWebApp::HandleRequest(const string& file, ContentHost* contentHost, Client* client, int clientSocket)
+void VimWebApp::HandleRequest(const string& file, ContentHost* contentHost, int clientSocket)
 {
 	const string codeLine = Server::cleanAssemblyString(file.substr(5), false);
 	const string pageHeader = R"(<!DOCTYPE html>
@@ -32,6 +32,6 @@ void VimWebApp::HandleRequest(const string& file, ContentHost* contentHost, Clie
 
 	Page* newPage = new Page("asdf", "vim", fullPage);
 
-	this->server->SendPage(client, newPage, clientSocket);
+	this->server->SendPage(newPage, clientSocket);
 	delete newPage;
 }

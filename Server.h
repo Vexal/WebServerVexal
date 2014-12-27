@@ -34,12 +34,23 @@ class Folder;
 class ContentHost;
 class WebApp;
 
+struct ClientRequest
+{
+	std::string clientAddressString;
+	std::string referer;
+	std::string refererDomain;
+	std::string requestCommand;
+	std::string userAgent;
+	std::string requestTarget;
+	std::string requestTime;
+	std::string hostName;
+};
+
 class Server
 {
 private:
 	int serverSocket;
 	std::string port;
-	std::map<std::string, Client*> clients;
 	std::map<std::string, std::string> hostNames;
 	std::map<std::string, ContentHost*> virtualServers;
 	std::map<std::string, WebSocketCallback> webSocketMessageCallbacks;
@@ -49,8 +60,8 @@ public:
 	Server(const std::string& config = "config.txt");
 	bool InitializeServer();
 	void Update();
-	void handleClientRequest(Client* client, const std::string& request, int requestLength, int clientSocket);
-	bool SendPage(Client* client, const Page* const page, int clientSocket, int statusCode = 200);
+	void handleClientRequest(const std::string& request, int clientSocket, const std::string& clientAddressString);
+	bool SendPage(const Page* const page, int clientSocket, int statusCode = 200);
 	~Server();
 
 private:
@@ -58,12 +69,13 @@ private:
 	bool initializeTCPSocket();
 	bool listenSocket();
 	bool checkForNewConnection();
-	void initializeWebSocketConnection(Client* client, int clientSocket, const std::string& request);
-	void maintainWebSocketConnection(Client* client, int clientSocket);
-	void sendWebSocketMessageShort(Client* client, int clientSocket, const std::string& message);
+	void handleHTTPGetRequest(const std::string& request, int clientSocket, const std::string& clientAddressString);
+	void initializeWebSocketConnection(int clientSocket, const std::string& request);
+	void maintainWebSocketConnection(int clientSocket);
+	void sendWebSocketMessageShort(int clientSocket, const std::string& message);
 	bool initializeWebContent(const std::string& rootDirectory);
-	Client* clientExists(const std::string& address) const;
-	void handleSwitch();
+	void parseClientHeader(const std::string& request, ClientRequest& result) const;
+	void writeClientLog(const ClientRequest& request) const;
 
 public:
 	static std::string cleanAssemblyString(std::string s, bool plussesAreSpaces = true);
@@ -71,3 +83,4 @@ public:
 
 void closesocket2(int socket);
 void PostError();
+void ForkThread(Server* server, int clientSocket, const std::string& clientAddressString);

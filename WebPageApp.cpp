@@ -12,7 +12,7 @@ WebPageApp::WebPageApp(Server* server) :
 {
 }
 
-void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentHost, Client* client, int clientSocket)
+void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentHost, int clientSocket)
 {
 	const Folder* const dir = contentHost->GetRootDirectory();
 
@@ -28,18 +28,18 @@ void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentH
 		if (page->GetPageType() == PageType::HTML)
 		{
 			const Page* const constructedPage = this->ConstructPage(page, dir);
-			this->server->SendPage(client, constructedPage, clientSocket);
+			this->server->SendPage(constructedPage, clientSocket);
 
 			delete constructedPage;
 		}
 		else
 		{
-			this->server->SendPage(client, page, clientSocket);
+			this->server->SendPage(page, clientSocket);
 		}
 	}
 	else
 	{
-		this->server->SendPage(client, dir->GetError404Page(), clientSocket, 404);
+		this->server->SendPage(dir->GetError404Page(), clientSocket, 404);
 	}
 }
 

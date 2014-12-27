@@ -11,5 +11,5 @@ private:
 
 public:
 	AssemblerWebApp(Server* server, const WebPageApp* const serverWebPageApp);
-	virtual void HandleRequest(const std::string& request, ContentHost* contentHost, Client* client, int clientSocket) override;
+	virtual void HandleRequest(const std::string& request, ContentHost* contentHost, int clientSocket) override;
 };

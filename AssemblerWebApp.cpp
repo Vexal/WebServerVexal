@@ -1,8 +1,8 @@
 #include "AssemblerWebApp.h"
 #include "WebPageApp.h"
 #include "Server.h"
-#include "Assembler.h"
-#include "Simulator.h"
+#include "Assembler/Assembler.h"
+#include "Assembler/Simulator.h"
 #include "Folder.h"
 #include "Page.h"
 #include <iostream>
@@ -16,7 +16,7 @@ AssemblerWebApp::AssemblerWebApp(Server* server, const WebPageApp* const serverW
 {
 }
 
-void AssemblerWebApp::HandleRequest(const string & request, ContentHost* contentHost, Client* client, int clientSocket)
+void AssemblerWebApp::HandleRequest(const string & request, ContentHost* contentHost, int clientSocket)
 {
 	string file = request;
 	string rest = file;
@@ -173,6 +173,6 @@ void AssemblerWebApp::HandleRequest(const string & request, ContentHost* content
 	const Page* const constructedPage = this->serverWebPageApp->ConstructPage(newPage, dir);
 	delete newPage;
 
-	this->server->SendPage(client, constructedPage, clientSocket);
+	this->server->SendPage(constructedPage, clientSocket);
 	delete constructedPage;
 }
