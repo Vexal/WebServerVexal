@@ -4,12 +4,31 @@
 #include "Server.h"
 #include "ContentHost.h"
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 
 using namespace std;
 
 WebPageApp::WebPageApp(Server* server) :
 	WebApp("web", server)
 {
+	ifstream inputFile("viewcounts.txt");
+	
+	if (inputFile.is_open())
+	{
+		while (inputFile.good())
+		{
+			string tokenName;
+			int tokenValue;
+
+			inputFile >> tokenName;
+			inputFile >> tokenValue;
+
+			this->viewCounts["content" + tokenName] = tokenValue;
+		}
+
+		inputFile.close();
+	}
 }
 
 void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentHost, int clientSocket)
@@ -57,6 +76,13 @@ Page const* WebPageApp::ConstructPage(const Page* const page, const Folder* cons
 		{
 			const string data = static_cast<Page*>(dir->GetPage(operationTarget))->GetContent();
 			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, data);
+		}
+		else if (operation == "THIS")
+		{
+			string pa = page->GetFullPath();
+			transform(pa.begin(), pa.end(), pa.begin(), ::tolower);
+			const int viewCount = this->viewCounts[pa];
+			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, to_string(viewCount));
 		}
 		
 		pageContent.erase(foundPosition, eraseEnd - foundPosition + 1);

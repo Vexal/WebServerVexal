@@ -16,34 +16,27 @@ using namespace std;
 extern bool printEverything;
 
 Folder::Folder(const string& fullPath, const string& name) :
-	WebNode(fullPath, name, FOLDER),
-	defaultPage(NULL),
-	error404Page(NULL)
+	WebNode(fullPath, name, FOLDER)
 {
-	this->defaultPage = new Page(this->fullPath + "Home.html", "/HOME.html");
-	if(this->defaultPage->IsValid())
+	if(this->fullPath == "Content/")
 	{
-		this->pages["HOME.HTML"] = this->defaultPage;
-	}
-	else
-	{
-		this->defaultPage = NULL;
-	}
+		this->error404Page = new Page(this->fullPath + "404.html", "/404.html");
+		if (this->error404Page->IsValid())
+		{
+			this->pages["404.HTML"] = this->error404Page;
+		}
 
-	this->error404Page = new Page(this->fullPath + "404.html", "/404.html");
-	if (this->error404Page->IsValid())
-	{
-		this->pages["404.HTML"] = this->error404Page;
-	}
-	else
-	{
-		this->error404Page = NULL;
+		this->defaultPage = new Page(this->fullPath + "Home.html", "/HOME.html");
+		if (this->defaultPage->IsValid())
+		{
+			this->pages["HOME.HTML"] = this->defaultPage;
+		}
 	}
 
 #ifdef _WIN32
 	WIN32_FIND_DATA data;
 	const string path(this->fullPath + "*");
-	wchar_t* wBuffer = new wchar_t[path.size() + 1];
+	wchar_t* wBuffer = new wchar_t[path.size() + 2];
 	size_t numConverted;
 	mbstowcs_s(&numConverted, wBuffer, path.size() + 1, path.c_str(), path.size() + 1);
 	const HANDLE hFile = FindFirstFile(wBuffer, &data);
@@ -60,22 +53,27 @@ Folder::Folder(const string& fullPath, const string& name) :
 				//wcout << L"Found directory: " << data.cFileName << endl;
 
 				size_t convnum;
-				char* pathChar = new char[strlenT(data.cFileName)];
+				char* pathChar = new char[strlenT(data.cFileName) + 1];
 				wcstombs_s(&convnum, pathChar, strlenT(data.cFileName) + 1, data.cFileName, strlenT(data.cFileName) + 1);
 				string s(pathChar);
 				this->pages[to_upper(pathChar, strlenT(data.cFileName))] = new Folder(this->fullPath + s + "/", s);
+				delete[] pathChar;
 			}
 			else
 			{
 				size_t convnum;
-				char* pathChar = new char[strlenT(data.cFileName)];
+				char* pathChar = new char[strlenT(data.cFileName) + 1];
 				wcstombs_s(&convnum, pathChar, strlenT(data.cFileName) + 1, data.cFileName, strlenT(data.cFileName) + 1);
 				string s(pathChar);
 				//wcout << L"Found file: " << data.cFileName << endl;
 				this->pages[to_upper(pathChar, strlenT(data.cFileName))] = new Page(this->fullPath + s, s);
+				delete[] pathChar;
 			}
 		}
 	}
+
+	delete[] wBuffer;
+	FindClose(hFile);
 #else
 	DIR* d;
 	struct dirent *dir;
@@ -130,15 +128,8 @@ WebNode* Folder::GetPage(const string& pageName) const
 				break;
 			}
 		}
-
-		if(this->defaultPage != NULL)
-		{
-			cout << "Error:  " << pageName << " not found in directory " << this->fullPath << ". Sending default page: " << this->defaultPage->GetName() << endl;
-		}
-		else
-		{
-			cout << "Error:  " << pageName << " not found in directory " << this->fullPath << endl;
-		}
+		
+		cout << "Error:  " << pageName << " not found in directory " << this->fullPath << endl;		
 	}
 	else
 	{
@@ -162,18 +153,16 @@ WebNode* Folder::GetPage(const string& pageName) const
 			if(potentialPage != this->pages.end())
 			{
 				if(printEverything)
-				cout << "Successfully accessed " << pageName << " in directory " << this->fullPath << endl;
+					cout << "Successfully accessed " << pageName << " in directory " << this->fullPath << endl;
 
 				return potentialPage->second;
 			}
 		}
 
-		cout << "Error:  " << pageName << " not found in directory " << this->fullPath << endl; // << L". Sending default page: " << this->defaultPage->GetName() << endl;
-
-		return NULL;
+		cout << "Error:  " << pageName << " not found in directory " << this->fullPath << endl;
 	}
 	
-	return this->defaultPage;
+	return nullptr;
 }
 
 Folder::~Folder()

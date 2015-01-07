@@ -16,8 +16,8 @@ class Folder : public WebNode
 {
 private:
 	std::map<std::string, WebNode*, PageCompare> pages;
-	Page* defaultPage;
-	Page* error404Page;
+	Page* defaultPage = nullptr;
+	Page* error404Page = nullptr;
 
 public:
 	Folder(const std::string& fullPath, const std::string& name);

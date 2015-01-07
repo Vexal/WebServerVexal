@@ -11,9 +11,7 @@
 using namespace std;
 
 Page::Page(const string& filePath, const string& name) :
-	WebNode(filePath, name, PAGE),
-	valid(false),
-	viewCount(0)
+	WebNode(filePath, name, PAGE)
 {
 	size_t dotInd = this->name.find_first_of('.');
 	string command(this->name, dotInd + 1, this->name.length() - dotInd);
@@ -92,12 +90,10 @@ void Page::loadContent()
 				memcpy(this->content, fileStream.str().c_str(), sizeof(char) * this->contentLength);
 				this->content[this->contentLength] = 0;
 				myFile.close();
-				//cout << "Loaded page: " << this->fullPath << " with size " << this->contentLength << endl;
-				this->valid = true;
 			}
 			else
 			{
-				//cout << "Failed to load page: " << this->fullPath << endl;
+				cout << "Failed to load page: " << this->fullPath << endl;
 				this->valid = false;
 			}
 		}
@@ -109,14 +105,14 @@ void Page::loadContent()
 			{
 				this->contentLength = myFile.tellg();
 				myFile.seekg(0, ios::beg);
-				this->content = new char[this->contentLength];
+				this->content = new char[this->contentLength + 1];
 				myFile.read(this->content, this->contentLength);
 				myFile.close();
-				//cout << "Loaded image: " << this->fullPath << " with size " << this->contentLength << endl;
+				this->valid = true;			
 			}
 			else
 			{
-				//cout << "Failed to load image: " << this->fullPath << endl;
+				cout << "Failed to load image: " << this->fullPath << endl;
 				this->valid = false;
 			}
 		}
@@ -128,14 +124,15 @@ void Page::loadContent()
 			{
 				this->contentLength = myFile.tellg();
 				myFile.seekg(0, ios::beg);
-				this->content = new char[this->contentLength];
+				this->content = new char[this->contentLength + 1];
 				myFile.read(this->content, this->contentLength);
 				myFile.close();
+				this->valid = true;
 				//cout << "Loaded sound: " << this->fullPath << " with size " << this->contentLength << endl;
 			}
 			else
 			{
-				//cout << "Failed to load sound: " << this->fullPath << endl;
+				cout << "Failed to load sound: " << this->fullPath << endl;
 				this->valid = false;
 			}
 		}

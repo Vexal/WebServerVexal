@@ -36,10 +36,10 @@ class Page : public WebNode
 private:
 	char* content;
 	size_t contentLength;
-	bool valid;
+	bool valid = false;
 	PageType pageType;
 	ContentType contentType;
-	int viewCount;
+	int viewCount = 0;
 	std::map<std::string, int, PageCompare2> pages;
 
 public:

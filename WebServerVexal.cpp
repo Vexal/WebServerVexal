@@ -7,11 +7,15 @@
 #include <thread>
 #include <string>
 #include <fstream>
+#include <atomic>
 #include "SerialHandler.h"
 using namespace std;
 
 bool resetServer = true;
 bool printEverything = false;
+bool printThreading = false;
+
+extern atomic_int maxThreadCount;
 
 int main(int argc, char* argv[])
 {
@@ -29,6 +33,16 @@ int main(int argc, char* argv[])
 		else if(input.compare("reload") == 0)
 		{
 			resetServer = true;
+		}
+		else if (input == "tc")
+		{
+			printThreading = !printThreading;
+		}
+		else if (input == "maxthread")
+		{
+			int newThreadCount;
+			cin >> newThreadCount;
+			maxThreadCount.store(newThreadCount);
 		}
 		else if(input.compare("print") == 0)
 		{

@@ -3,14 +3,12 @@
 #include <string>
 #include "ContentHost.h"
 
-using namespace std;
 
 bool Server::InitializeServer()
 {
-
+	this->initializeWSA();
 	std::cout << "Initializing Web Content... port: " << this->port << std::endl;
 	this->initializeWebContent("");
-	this->initializeWSA();
 	std::cout << "Initializing Server Socket..." << std::endl;
 	this->initializeTCPSocket();
 	std::cout << "Listening Server Socket..." << std::endl;
@@ -129,6 +127,7 @@ bool Server::listenSocket()
 
 void closesocket2(int socket)
 {
+	//std::cout << "closing socket " << socket << std::endl;
 #ifdef _WIN32
 	closesocket(socket);
 #else

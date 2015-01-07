@@ -25,6 +25,7 @@
 #define SOCKET_ERROR -1
 #endif
 #include <map>
+#include <mutex>
 
 typedef void(*WebSocketCallback)();
 
@@ -55,7 +56,8 @@ private:
 	std::map<std::string, ContentHost*> virtualServers;
 	std::map<std::string, WebSocketCallback> webSocketMessageCallbacks;
 	std::map<std::string, WebApp*> webApps;
-	
+	std::mutex logMutex;
+
 public:
 	Server(const std::string& config = "config.txt");
 	bool InitializeServer();
@@ -75,7 +77,7 @@ private:
 	void sendWebSocketMessageShort(int clientSocket, const std::string& message);
 	bool initializeWebContent(const std::string& rootDirectory);
 	void parseClientHeader(const std::string& request, ClientRequest& result) const;
-	void writeClientLog(const ClientRequest& request) const;
+	void writeClientLog(const ClientRequest& request);
 
 public:
 	static std::string cleanAssemblyString(std::string s, bool plussesAreSpaces = true);
@@ -83,4 +85,4 @@ public:
 
 void closesocket2(int socket);
 void PostError();
-void ForkThread(Server* server, int clientSocket, const std::string& clientAddressString);
+void ForkThread(Server* server, int clientSocket, const std::string& clientAddressString, bool keepAlive);

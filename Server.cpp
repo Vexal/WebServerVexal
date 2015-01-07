@@ -13,18 +13,30 @@
 #include "AssemblerWebApp.h"
 #include "VimWebApp.h"
 #include "WebPageApp.h"
+#include <atomic>
 
+#ifdef _WIN32
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
+#else
+#include <time.h>
+#endif
+
 
 extern bool printEverything;
+extern bool printThreading;
+
 using namespace std;
+
+atomic_int threadCount;
+atomic_int maxThreadCount;
 
 Server::Server(const string& config) : 
 	port("8890"),
 	serverSocket(INVALID_SOCKET)
 {
 	ifstream configFile("config.txt");
+	maxThreadCount.store(8);
 	if(configFile.is_open())
 	{
 		configFile >> this->port;
@@ -75,49 +87,68 @@ bool Server::checkForNewConnection()
 	//block here until a connection is found.
 	const auto clientSocket = accept(this->serverSocket, &clientAddress, &clientAddressLength);
 
+	while (++threadCount > maxThreadCount)
+	{
+		--threadCount;
+		if(printThreading)
+			cout << "Waiting for available thread..." << endl;
+#ifdef _WIN32
+		Sleep(4);
+#else
+		timespec t = { 0, 16000000};
+		nanosleep(&t, nullptr);
+#endif
+	}
+
+	if (printThreading)
+		cout << "Thread count: " << threadCount << endl;
+
 	if (clientSocket < 0 || clientSocket == INVALID_SOCKET)
 	{
-			cout << "inv" << endl;
+		cout << "inv" << endl;
 		closesocket2(clientSocket);
 		return false;
 	}
 
-	sockaddr_in* add2;
-	add2 = reinterpret_cast<sockaddr_in*>(&clientAddress);
+	const sockaddr_in* const add2 = reinterpret_cast<sockaddr_in*>(&clientAddress);
 
 	const string clientAddressString(inet_ntoa(add2->sin_addr));
 	if (printEverything)
 		cout << "Received connection from client with address " << clientAddressString << endl;
 	
 	//create a new thread to handle the client's request.
-	thread serverThread(&ForkThread, this, clientSocket, clientAddressString);
+	thread serverThread(&ForkThread, this, clientSocket, clientAddressString, false);
 	serverThread.detach();
-	
+
 	return true;
 }
 
 #define MAX_REQUEST_SIZE 16284
-void ForkThread(Server* server, int clientSocket, const string& clientAddressString)
+void ForkThread(Server* server, int clientSocket, const string& clientAddressString, bool keepAlive)
 {
-	char bufferRcv[MAX_REQUEST_SIZE];
-	const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 1, 0);
-	if (printEverything)
-		cout << "Accept successful from address: " << clientAddressString << " with " << recvLen << " bytes." << endl;
-
-	if (recvLen > 0)
+	do 
 	{
-		bufferRcv[recvLen] = '\0';
+		char bufferRcv[MAX_REQUEST_SIZE];
+		const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 1, 0);
 		if (printEverything)
-		{
-			cout << endl << endl << endl << bufferRcv << endl << endl << endl;
-		}
+			cout << "Accept successful from address: " << clientSocket << " with " << recvLen << " bytes." << endl;
 
-		server->handleClientRequest(bufferRcv, clientSocket, clientAddressString);
-	}
-	else
-	{
-		closesocket2(clientSocket);
-	}
+		if (recvLen > 0)
+		{
+			bufferRcv[recvLen] = '\0';
+			if (printEverything)
+			{
+				cout << endl << endl << endl << bufferRcv << endl << endl << endl;
+			}
+
+			server->handleClientRequest(bufferRcv, clientSocket, clientAddressString);
+		}
+		else
+			break;
+	} while (keepAlive);
+
+	closesocket2(clientSocket);
+	--threadCount;
 }
 
 void Server::handleClientRequest(const string& request, int clientSocket, const string& clientAddressString)
@@ -150,9 +181,8 @@ void Server::handleHTTPGetRequest(const string& request, int clientSocket, const
 	ClientRequest clientRequest = { clientAddressString, "", "", "", "", "", "", "" };
 
 	this->parseClientHeader(request, clientRequest);
-	this->writeClientLog(clientRequest);
 
-	auto potentialClient = this->virtualServers.find("Content/");
+	const auto potentialClient = this->virtualServers.find("Content/");
 	if (potentialClient != this->virtualServers.end())
 	{
 		//separate app arguments from app name.
@@ -171,9 +201,11 @@ void Server::handleHTTPGetRequest(const string& request, int clientSocket, const
 		}
 		else
 		{
-			this->webApps["web"]->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
+			this->webApps.at("web")->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
 		}
 	}
+
+	this->writeClientLog(clientRequest);
 }
 
 bool Server::SendPage(const Page* const page, int clientSocket, int statusCode)
@@ -236,9 +268,11 @@ bool Server::SendPage(const Page* const page, int clientSocket, int statusCode)
 		const string content = string(page->GetContent(), page->GetContentLength());
 
 		const string finalPage = l1 + l2 + l3 + "\r\n" + content;
-		const auto iSendResult2 = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
+		
+		const auto sendAmount = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
 
-		if (iSendResult2 == SOCKET_ERROR || iSendResult2 < 0) 
+		//cout << "Sending to socket " << clientSocket << endl;
+		if (sendAmount == SOCKET_ERROR || sendAmount < 0)
 		{
 			cout << "Send failed with error: " << endl;
 			PostError();
@@ -247,7 +281,6 @@ bool Server::SendPage(const Page* const page, int clientSocket, int statusCode)
 		}
 	}
 
-	closesocket2(clientSocket);
 	return true;
 }
 
@@ -256,22 +289,21 @@ Server::~Server()
 #ifdef _WIN32
 	WSACleanup();
 #endif
-	//delete this->rootDirectory;
 }
 
 void Server::parseClientHeader(const string& request, ClientRequest& clientRequest) const
 {
-	size_t nextPos = request.find_first_of(' ');
-	size_t nextPos2 = request.find_first_of(' ', nextPos + 1);
-	string file(request, nextPos + 1, nextPos2 - nextPos - 1);
-	size_t referPosition = request.find("Referer: ");
+	const size_t nextPos = request.find_first_of(' ');
+	const size_t nextPos2 = request.find_first_of(' ', nextPos + 1);
+	const string file(request, nextPos + 1, nextPos2 - nextPos - 1);
+	const size_t referPosition = request.find("Referer: ");
 	if (referPosition != string::npos) // link referred
 	{
-		size_t nextPos3 = request.find_first_of('\r', referPosition + 9);
-		string referString(request, referPosition + 9, nextPos3 - referPosition - 9);
-		size_t colonPos = referString.find_first_of(':');
-		size_t nextSlashPos = referString.find_first_of('/', colonPos + 3);
-		string referDomain(referString, colonPos + 3, nextSlashPos - colonPos - 3);
+		const size_t nextPos3 = request.find_first_of('\r', referPosition + 9);
+		const string referString(request, referPosition + 9, nextPos3 - referPosition - 9);
+		const size_t colonPos = referString.find_first_of(':');
+		const size_t nextSlashPos = referString.find_first_of('/', colonPos + 3);
+		const string referDomain(referString, colonPos + 3, nextSlashPos - colonPos - 3);
 		clientRequest.refererDomain = referDomain;
 		clientRequest.referer = referString;
 	}
@@ -280,11 +312,11 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 		clientRequest.referer = "'";
 	}
 
-	size_t userAgentPosition = request.find("User-Agent: ");
+	const size_t userAgentPosition = request.find("User-Agent: ");
 	if (userAgentPosition != string::npos)
 	{
-		size_t nextPos3 = request.find_first_of('\r', userAgentPosition + 12);
-		string userAgentString(request, userAgentPosition + 12, nextPos3 - userAgentPosition - 12);
+		const size_t nextPos3 = request.find_first_of('\r', userAgentPosition + 12);
+		const string userAgentString(request, userAgentPosition + 12, nextPos3 - userAgentPosition - 12);
 
 		clientRequest.userAgent = userAgentString;
 	}
@@ -293,11 +325,11 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 		clientRequest.userAgent = "USER-AGENT UNKNOWN";
 	}
 
-	size_t hostNamePo = request.find("Host: ");
+	const size_t hostNamePo = request.find("Host: ");
 	if (hostNamePo != string::npos)
 	{
-		size_t nextPos3 = request.find_first_of('\r', hostNamePo + 6);
-		string userAgentString(request, hostNamePo + 6, nextPos3 - hostNamePo - 6);
+		const size_t nextPos3 = request.find_first_of('\r', hostNamePo + 6);
+		const string userAgentString(request, hostNamePo + 6, nextPos3 - hostNamePo - 6);
 
 		clientRequest.hostName = userAgentString;
 	}
@@ -308,19 +340,20 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	clientRequest.requestCommand = "GET";
 	clientRequest.requestTarget = file;
 	// Current date/time based on current system
-	time_t now = time(0);
+	const time_t now = time(0);
 
 	// Convert now to tm struct for local timezone
-	tm* localtm = localtime(&now);
+	const tm* const localtm = localtime(&now);
 
 	clientRequest.requestTime = asctime(localtm);
 	if (printEverything)
 		cout << "The local date and time is: " << clientRequest.requestTime << endl;
-
 }
 
-void Server::writeClientLog(const ClientRequest& clientRequest) const
+void Server::writeClientLog(const ClientRequest& clientRequest)
 {
+	logMutex.lock();
+
 	ofstream logFile;
 	logFile.open("Connection Logs/" + clientRequest.clientAddressString + ".slog", ios_base::app);
 	if (logFile.is_open())
@@ -336,10 +369,8 @@ void Server::writeClientLog(const ClientRequest& clientRequest) const
 		logFile << "*END*" << endl << endl;
 		logFile.close();
 	}
-	else
-	{
-		cout << "Error writing to log file!" << endl;
-	}
+
+	logMutex.unlock();
 }
 
 string Server::cleanAssemblyString(string s, bool plussesAreSpaces)
