@@ -10,7 +10,7 @@ static const std::string base64_chars =
 
 static const std::string webSocketHeader = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ";
 
-void Server::initializeWebSocketConnection(int clientSocket, const std::string& request)
+void Server::initializeWebSocketConnection(int clientSocket, const std::string& request) const
 {
 	using namespace std;
 
@@ -121,7 +121,7 @@ void Server::initializeWebSocketConnection(int clientSocket, const std::string& 
 }
 
 //for sending messages whose length can be described with one byte
-void Server::sendWebSocketMessageShort(int clientSocket, const std::string& message)
+void Server::sendWebSocketMessageShort(int clientSocket, const std::string& message) const
 {
 	using namespace std; 
 	char* fullMessage = new char[message.size() + 2];
@@ -133,7 +133,7 @@ void Server::sendWebSocketMessageShort(int clientSocket, const std::string& mess
 	delete[] fullMessage;
 }
 
-void Server::maintainWebSocketConnection(int clientSocket)
+void Server::maintainWebSocketConnection(int clientSocket) const
 {
 	using namespace std;
 

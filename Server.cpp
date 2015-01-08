@@ -87,9 +87,8 @@ bool Server::checkForNewConnection()
 	//block here until a connection is found.
 	const auto clientSocket = accept(this->serverSocket, &clientAddress, &clientAddressLength);
 
-	while (++threadCount > maxThreadCount)
+	while (threadCount > maxThreadCount)
 	{
-		--threadCount;
 		if(printThreading)
 			cout << "Waiting for available thread..." << endl;
 #ifdef _WIN32
@@ -99,6 +98,8 @@ bool Server::checkForNewConnection()
 		nanosleep(&t, nullptr);
 #endif
 	}
+
+	++threadCount;
 
 	if (printThreading)
 		cout << "Thread count: " << threadCount << endl;
@@ -162,7 +163,7 @@ void Server::handleClientRequest(const string& request, int clientSocket, const 
 	}
 }
 
-void Server::handleHTTPGetRequest(const string& request, int clientSocket, const string& clientAddressString)
+void Server::handleHTTPGetRequest(const string& request, int clientSocket, const string& clientAddressString) const
 {
 	const size_t connectionPosition = request.find("Connection: ");
 	if (connectionPosition != string::npos)
@@ -208,7 +209,7 @@ void Server::handleHTTPGetRequest(const string& request, int clientSocket, const
 	this->writeClientLog(clientRequest);
 }
 
-bool Server::SendPage(const Page* const page, int clientSocket, int statusCode)
+bool Server::SendPage(const Page* const page, int clientSocket, int statusCode) const
 {
 	string contentType = "text";
 	string pageType = "html";
@@ -339,18 +340,11 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	}
 	clientRequest.requestCommand = "GET";
 	clientRequest.requestTarget = file;
-	// Current date/time based on current system
-	const time_t now = time(0);
 
-	// Convert now to tm struct for local timezone
-	const tm* const localtm = localtime(&now);
-
-	clientRequest.requestTime = asctime(localtm);
-	if (printEverything)
-		cout << "The local date and time is: " << clientRequest.requestTime << endl;
+	clientRequest.requestTime = "";
 }
 
-void Server::writeClientLog(const ClientRequest& clientRequest)
+void Server::writeClientLog(const ClientRequest& clientRequest) const
 {
 	logMutex.lock();
 
@@ -358,8 +352,11 @@ void Server::writeClientLog(const ClientRequest& clientRequest)
 	logFile.open("Connection Logs/" + clientRequest.clientAddressString + ".slog", ios_base::app);
 	if (logFile.is_open())
 	{
+		const time_t now = time(0);
+		const tm* const localtm = localtime(&now);
+
 		logFile << "*BEG*" << endl;
-		logFile << "T: " << clientRequest.requestTime;
+		logFile << "T: " << asctime(localtm);
 		logFile << "Command: " << clientRequest.requestCommand << endl;
 		logFile << "Target: " << clientRequest.requestTarget << endl;
 		logFile << "Refer Domain: " << clientRequest.refererDomain << endl;

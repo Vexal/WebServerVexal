@@ -56,14 +56,14 @@ private:
 	std::map<std::string, ContentHost*> virtualServers;
 	std::map<std::string, WebSocketCallback> webSocketMessageCallbacks;
 	std::map<std::string, WebApp*> webApps;
-	std::mutex logMutex;
+	mutable std::mutex logMutex;
 
 public:
 	Server(const std::string& config = "config.txt");
 	bool InitializeServer();
 	void Update();
 	void handleClientRequest(const std::string& request, int clientSocket, const std::string& clientAddressString);
-	bool SendPage(const Page* const page, int clientSocket, int statusCode = 200);
+	bool SendPage(const Page* const page, int clientSocket, int statusCode = 200) const;
 	~Server();
 
 private:
@@ -71,13 +71,13 @@ private:
 	bool initializeTCPSocket();
 	bool listenSocket();
 	bool checkForNewConnection();
-	void handleHTTPGetRequest(const std::string& request, int clientSocket, const std::string& clientAddressString);
-	void initializeWebSocketConnection(int clientSocket, const std::string& request);
-	void maintainWebSocketConnection(int clientSocket);
-	void sendWebSocketMessageShort(int clientSocket, const std::string& message);
+	void handleHTTPGetRequest(const std::string& request, int clientSocket, const std::string& clientAddressString) const;
+	void initializeWebSocketConnection(int clientSocket, const std::string& request) const;
+	void maintainWebSocketConnection(int clientSocket) const;
+	void sendWebSocketMessageShort(int clientSocket, const std::string& message) const;
 	bool initializeWebContent(const std::string& rootDirectory);
 	void parseClientHeader(const std::string& request, ClientRequest& result) const;
-	void writeClientLog(const ClientRequest& request);
+	void writeClientLog(const ClientRequest& request) const;
 
 public:
 	static std::string cleanAssemblyString(std::string s, bool plussesAreSpaces = true);
