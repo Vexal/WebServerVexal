@@ -146,8 +146,8 @@ Page* Page::ClonePage(const vector<string>& replaceTokens, const vector<string>&
 
 	for (int a = 0; a < replaceTexts.size(); ++a)
 	{
-		const int ind = thisPage.find(replaceTokens[a]);
-		if (ind < 0)
+		const size_t ind = thisPage.find(replaceTokens[a]);
+		if (ind == string::npos)
 		{
 			continue;
 		}
@@ -168,11 +168,11 @@ Page* Page::ClonePage(const string& replaceToken, const string& replaceText, con
 {
 	string thisPage(this->content);
 
-	const int ind = thisPage.find(replaceToken);
+	const size_t ind = thisPage.find(replaceToken);
 
 	thisPage.insert(ind, replaceText);
 
-	const int ind2 = thisPage.find(replaceToken2);
+	const size_t ind2 = thisPage.find(replaceToken2);
 
 	thisPage.insert(ind2, replaceText2);
 	Page* newPage = new Page(this->fullPath, this->name, thisPage);
@@ -188,7 +188,7 @@ Page* Page::ClonePage(const string& replaceToken, const string& replaceText) con
 {
 	string thisPage(this->content);
 
-	const int ind = thisPage.find(replaceToken);
+	const size_t ind = thisPage.find(replaceToken);
 
 	thisPage.insert(ind, replaceText);
 

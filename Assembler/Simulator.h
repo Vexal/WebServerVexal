@@ -18,7 +18,7 @@ namespace CS350
 		void Run(int stepCount = 1);
 
 		std::string GetOutput() const;
-		unsigned int GetExecutionCount() const { return this->programStates.size(); }
+		size_t GetExecutionCount() const { return this->programStates.size(); }
 		const ProgramState GetCurrentProgramState() const { return this->GetExecutionCount() > 0 ? this->programStates[this->GetExecutionCount() - 1] : ProgramState(this->memory); }
 	private:
 	};

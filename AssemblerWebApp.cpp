@@ -1,28 +1,26 @@
 #include "AssemblerWebApp.h"
-#include "WebPageApp.h"
 #include "Server.h"
 #include "Assembler/Assembler.h"
 #include "Assembler/Simulator.h"
 #include "Folder.h"
 #include "Page.h"
 #include <iostream>
+#include "WebPageApp.h"
 
 using namespace std;
 using namespace CS350;
 
-AssemblerWebApp::AssemblerWebApp(Server* server, const WebPageApp* const serverWebPageApp) :
+AssemblerWebApp::AssemblerWebApp(Server* server, const Folder* const rootDirectory) :
 	WebApp("compile", server),
-	serverWebPageApp(serverWebPageApp)
+	rootDirectory(rootDirectory),
+	assemblerPage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Assembler/Assembler.html")))
 {
 }
 
-void AssemblerWebApp::HandleRequest(const string & request, ContentHost* contentHost, int clientSocket)
+void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
 {
 	string file = request;
 	string rest = file;
-
-	const Folder* const dir = contentHost->GetRootDirectory();
-	const Page* const page = static_cast<Page*>(dir->GetPage("/Projects/Assembler/Assembler.html"));
 
 	vector<string> replaceTokens;
 	vector<string> replaceTexts;
@@ -118,7 +116,7 @@ void AssemblerWebApp::HandleRequest(const string & request, ContentHost* content
 		assembledCode = ourAssembler.Assemble();
 		errorText += ourAssembler.GetErrorText();
 		Simulator simulator(ourAssembler.GetMachineCode(), ourAssembler.GetLineDataType());
-		int stepCt = ourAssembler.GetMachineCode().size();
+		size_t stepCt = ourAssembler.GetMachineCode().size();
 		string stepCount = to_string(stepCt);
 
 		if (useSimulator && file.length() > stepCountInd + 1)
@@ -186,9 +184,9 @@ void AssemblerWebApp::HandleRequest(const string & request, ContentHost* content
 		replaceTexts.push_back(" checked");
 	}
 
-	const Page* const newPage = page->ClonePage(replaceTokens, replaceTexts);
+	const Page* const newPage = assemblerPage->ClonePage(replaceTokens, replaceTexts);
+	const Page* const constructedPage = WebPageApp::ConstructPage(newPage, rootDirectory);
 
-	const Page* const constructedPage = this->serverWebPageApp->ConstructPage(newPage, dir);
 	delete newPage;
 
 	this->server->SendPage(constructedPage, clientSocket);

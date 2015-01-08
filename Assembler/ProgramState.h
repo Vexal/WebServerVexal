@@ -8,10 +8,10 @@ namespace CS350
 	class ProgramState
 	{
 	private:
-		const RegisterFile registerFile;
-		const unsigned short programCounter;
-		const unsigned short printedProgramCounter; // not purely functional, but it's necessary to print the output correctly
-		const unsigned int executionCount; //how many instructions have been executed before this state
+		const RegisterFile registerFile = RegisterFile();
+		const unsigned short programCounter = 0;
+		const unsigned short printedProgramCounter = 0; // not purely functional, but it's necessary to print the output correctly
+		const unsigned int executionCount = 0; //how many instructions have been executed before this state
 		const std::vector<unsigned short> memory;
 		const unsigned short instruction;
 

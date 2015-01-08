@@ -11,7 +11,7 @@ namespace CS350
 	}
 
 	ProgramState::ProgramState(const vector<unsigned short>& memory) :
-		programCounter(0), executionCount(0), registerFile(RegisterFile()), memory(memory), instruction(memory[0]), printedProgramCounter(0)
+		memory(memory), instruction(memory[0])
 	{
 
 	}

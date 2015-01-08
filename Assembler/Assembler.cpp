@@ -24,9 +24,8 @@ bool Assembler::isCommented(const string& s)
 	stringstream lineStream(s);
 	string instructionName;
 	lineStream >> instructionName;
-	const int hasComment = instructionName.find("//");
 
-	return hasComment >= 0;
+	return instructionName.find("//") != string::npos;
 }
 
 string Assembler::createAssembledLine(const Instruction& instruction)
@@ -404,7 +403,7 @@ void Assembler::expandSpecialInstructions()
 		if (opcode != Assembler::specialInstructions.end())
 		{
 			this->hasExpandedCode = true;
-			const int textPos = this->assemblyCode.find(nextLine);
+			const size_t textPos = this->assemblyCode.find(nextLine);
 			this->assemblyCode.erase(textPos, nextLine.length());
 			const string expandedCode = Assembler::expandSpecialInstruction(nextLine);
 			this->assemblyCode.insert(textPos, expandedCode);
@@ -474,7 +473,7 @@ string Assembler::Assemble()
 
 	stringstream outputFile;
 
-	const int depth = this->endianess == CS350::CS_ORIGINAL ? outputLines.size() : (outputLines.size() % 2 == 0 ? outputLines.size() / 2 : outputLines.size() / 2 + 1);
+	const size_t depth = this->endianess == CS350::CS_ORIGINAL ? outputLines.size() : (outputLines.size() % 2 == 0 ? outputLines.size() / 2 : outputLines.size() / 2 + 1);
 	outputFile << (this->endianess == CS350::CS_ORIGINAL ? "WIDTH=16;" : "WIDTH=32;") << endl;
 	outputFile << "DEPTH=" << depth << ";" << endl << endl;
 

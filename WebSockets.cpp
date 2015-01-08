@@ -30,7 +30,7 @@ void Server::initializeWebSocketConnection(int clientSocket, const std::string& 
 	size_t outputLength = 0;
 	unsigned char inp[200];
 	int inpLen = 0;
-	int ind = (hashedKey.size() - 1) / 2;
+	size_t ind = (hashedKey.size() - 1) / 2;
 
 	for (int a = 0; a < hashedKey.size(); ++a)
 	{

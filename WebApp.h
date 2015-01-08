@@ -1,8 +1,12 @@
 #pragma once
 #include <string>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#define SOCKET int
+#endif
 
 class Server;
-class ContentHost;
 class Client;
 
 class WebApp
@@ -13,7 +17,7 @@ protected:
 
 public:
 	WebApp(const std::string& name, Server* server);
-	virtual void HandleRequest(const std::string& request, ContentHost* contentHost, int clientSocket) = 0;
+	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) = 0;
 	virtual ~WebApp();
 
 	std::string GetName() const { return this->name; }

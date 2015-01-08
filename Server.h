@@ -21,15 +21,15 @@
 #include <netdb.h>
 
 #include <unistd.h>
-#define INVALID_SOCKET 0
+#define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
+#define SOCKET int
 #endif
 #include <map>
 #include <mutex>
 
 typedef void(*WebSocketCallback)();
 
-class Client;
 class Page;
 class Folder;
 class ContentHost;
@@ -45,15 +45,16 @@ struct ClientRequest
 	std::string requestTarget;
 	std::string requestTime;
 	std::string hostName;
+	std::string requestArguments;
+	std::string fullRequest;
 };
 
 class Server
 {
 private:
-	int serverSocket;
-	std::string port;
+	SOCKET serverSocket = INVALID_SOCKET;
+	std::string port = "8890";
 	std::map<std::string, std::string> hostNames;
-	std::map<std::string, ContentHost*> virtualServers;
 	std::map<std::string, WebSocketCallback> webSocketMessageCallbacks;
 	std::map<std::string, WebApp*> webApps;
 	mutable std::mutex logMutex;
@@ -62,16 +63,16 @@ public:
 	Server(const std::string& config = "config.txt");
 	bool InitializeServer();
 	void Update();
-	void handleClientRequest(const std::string& request, int clientSocket, const std::string& clientAddressString);
-	bool SendPage(const Page* const page, int clientSocket, int statusCode = 200) const;
+	void handleClientRequest(const std::string& request, SOCKET clientSocket, const std::string& clientAddressString);
+	bool SendPage(const Page* const page, SOCKET clientSocket, int statusCode = 200) const;
 	~Server();
 
 private:
+	void handleHTTPGetRequest(const std::string& request, SOCKET clientSocket, const std::string& clientAddressString) const;
+	bool checkForNewConnection();
 	bool initializeWSA();
 	bool initializeTCPSocket();
 	bool listenSocket();
-	bool checkForNewConnection();
-	void handleHTTPGetRequest(const std::string& request, int clientSocket, const std::string& clientAddressString) const;
 	void initializeWebSocketConnection(int clientSocket, const std::string& request) const;
 	void maintainWebSocketConnection(int clientSocket) const;
 	void sendWebSocketMessageShort(int clientSocket, const std::string& message) const;
@@ -83,6 +84,6 @@ public:
 	static std::string cleanAssemblyString(std::string s, bool plussesAreSpaces = true);
 };
 
-void closesocket2(int socket);
+void closesocket2(SOCKET);
 void PostError();
-void ForkThread(Server* server, int clientSocket, const std::string& clientAddressString, bool keepAlive);
+void ForkThread(Server* server, SOCKET clientSocket, const std::string& clientAddressString, bool keepAlive);

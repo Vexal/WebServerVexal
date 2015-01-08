@@ -9,7 +9,7 @@ VimWebApp::VimWebApp(Server* server) :
 {
 }
 
-void VimWebApp::HandleRequest(const string& file, ContentHost* contentHost, int clientSocket)
+void VimWebApp::HandleRequest(const string& file, SOCKET clientSocket)
 {
 	const string codeLine = Server::cleanAssemblyString(file.substr(5), false);
 	const string pageHeader = R"(<!DOCTYPE html>

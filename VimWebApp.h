@@ -5,5 +5,5 @@ class VimWebApp : public WebApp
 {
 public:
 	VimWebApp(Server* server);
-	virtual void HandleRequest(const std::string& request, ContentHost* contentHost, int clientSocket) override;
+	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) override;
 };

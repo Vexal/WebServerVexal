@@ -2,12 +2,13 @@
 #include "Folder.h"
 #include "Page.h"
 #include "Server.h"
-#include "ContentHost.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 
 using namespace std;
+
+map<string, int> WebPageApp::viewCounts;
 
 WebPageApp::WebPageApp(Server* server) :
 	WebApp("web", server)
@@ -24,16 +25,19 @@ WebPageApp::WebPageApp(Server* server) :
 			inputFile >> tokenName;
 			inputFile >> tokenValue;
 
-			this->viewCounts["content" + tokenName] = tokenValue;
+			WebPageApp::viewCounts["content" + tokenName] = tokenValue;
 		}
 
 		inputFile.close();
 	}
+
+	this->virtualServers["Content/"] = new ContentHost("Content");
+	this->virtualServers["OtherContent/"] = new ContentHost("OtherContent");
 }
 
-void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentHost, int clientSocket)
+void WebPageApp::HandleRequest(const string& request, SOCKET clientSocket)
 {
-	const Folder* const dir = contentHost->GetRootDirectory();
+	const Folder* const dir = this->virtualServers.at("Content/")->GetRootDirectory();
 
 	const Page* const page = request == "/" ? dir->GetDefaultPage() : static_cast<Page*>(dir->GetPage(request));
 
@@ -57,7 +61,7 @@ void WebPageApp::HandleRequest(const std::string& request, ContentHost* contentH
 	}
 }
 
-Page const* WebPageApp::ConstructPage(const Page* const page, const Folder* const dir) const
+Page const* WebPageApp::ConstructPage(const Page* const page, const Folder* const dir)
 {
 	string pageContent(page->GetContent());
 	
@@ -81,7 +85,8 @@ Page const* WebPageApp::ConstructPage(const Page* const page, const Folder* cons
 		{
 			string pa = page->GetFullPath();
 			transform(pa.begin(), pa.end(), pa.begin(), ::tolower);
-			const int viewCount = this->viewCounts[pa];
+			const auto vc = WebPageApp::viewCounts.find(pa);
+			const int viewCount = vc != WebPageApp::viewCounts.end() ? vc->second : 0;
 			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, to_string(viewCount));
 		}
 		

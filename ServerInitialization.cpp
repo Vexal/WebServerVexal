@@ -3,27 +3,6 @@
 #include <string>
 #include "ContentHost.h"
 
-
-bool Server::InitializeServer()
-{
-	this->initializeWSA();
-	std::cout << "Initializing Web Content... port: " << this->port << std::endl;
-	this->initializeWebContent("");
-	std::cout << "Initializing Server Socket..." << std::endl;
-	this->initializeTCPSocket();
-	std::cout << "Listening Server Socket..." << std::endl;
-	this->listenSocket();
-	return true;
-}
-
-bool Server::initializeWebContent(const std::string& rootDirectory)
-{
-	//this->rootDirectory = new Folder("Content/", "Content");
-	this->virtualServers["Content/"] = new ContentHost("Content");
-	this->virtualServers["OtherContent/"] = new ContentHost("OtherContent");
-	return true;
-}
-
 bool Server::initializeWSA()
 {
 #ifdef _WIN32
@@ -125,7 +104,7 @@ bool Server::listenSocket()
 	return true;
 }
 
-void closesocket2(int socket)
+void closesocket2(SOCKET socket)
 {
 	//std::cout << "closing socket " << socket << std::endl;
 #ifdef _WIN32

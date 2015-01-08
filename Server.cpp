@@ -31,9 +31,7 @@ using namespace std;
 atomic_int threadCount;
 atomic_int maxThreadCount;
 
-Server::Server(const string& config) : 
-	port("8890"),
-	serverSocket(INVALID_SOCKET)
+Server::Server(const string& config)
 {
 	ifstream configFile("config.txt");
 	maxThreadCount.store(8);
@@ -65,10 +63,27 @@ Server::Server(const string& config) :
 
 		configFile.close();
 	}
+}
 
-	this->webApps["vim"] = new VimWebApp(this);
+
+bool Server::InitializeServer()
+{
+	this->initializeWSA();
+	std::cout << "Initializing Web Content... port: " << this->port << std::endl;
+	this->initializeWebContent("");
+	std::cout << "Initializing Server Socket..." << std::endl;
+	this->initializeTCPSocket();
+	std::cout << "Listening Server Socket..." << std::endl;
+	this->listenSocket();
+	return true;
+}
+
+bool Server::initializeWebContent(const std::string& rootDirectory)
+{
 	this->webApps["web"] = new WebPageApp(this);
-	this->webApps["compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"]));
+	this->webApps["vim"] = new VimWebApp(this);
+	this->webApps["compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
+	return true;
 }
 
 void Server::Update()
@@ -125,7 +140,7 @@ bool Server::checkForNewConnection()
 }
 
 #define MAX_REQUEST_SIZE 16284
-void ForkThread(Server* server, int clientSocket, const string& clientAddressString, bool keepAlive)
+void ForkThread(Server* server, SOCKET clientSocket, const string& clientAddressString, bool keepAlive)
 {
 	do 
 	{
@@ -152,7 +167,7 @@ void ForkThread(Server* server, int clientSocket, const string& clientAddressStr
 	--threadCount;
 }
 
-void Server::handleClientRequest(const string& request, int clientSocket, const string& clientAddressString)
+void Server::handleClientRequest(const string& request, SOCKET clientSocket, const string& clientAddressString)
 {
 	const size_t nextPos = request.find_first_of(' ');
 	const string command(request, 0, nextPos);
@@ -163,7 +178,7 @@ void Server::handleClientRequest(const string& request, int clientSocket, const 
 	}
 }
 
-void Server::handleHTTPGetRequest(const string& request, int clientSocket, const string& clientAddressString) const
+void Server::handleHTTPGetRequest(const string& request, SOCKET clientSocket, const string& clientAddressString) const
 {
 	const size_t connectionPosition = request.find("Connection: ");
 	if (connectionPosition != string::npos)
@@ -179,37 +194,26 @@ void Server::handleHTTPGetRequest(const string& request, int clientSocket, const
 		}
 	}
 
-	ClientRequest clientRequest = { clientAddressString, "", "", "", "", "", "", "" };
+	ClientRequest clientRequest = { clientAddressString, "", "", "", "", "", "", "", "", "" };
 
 	this->parseClientHeader(request, clientRequest);
 
-	const auto potentialClient = this->virtualServers.find("Content/");
-	if (potentialClient != this->virtualServers.end())
+	const auto potentialWebApp = this->webApps.find(clientRequest.requestTarget);
+
+	//invoke web app if it exists, else handle request as web page.
+	if (potentialWebApp != this->webApps.end())
 	{
-		//separate app arguments from app name.
-		const auto firstQuestionMarkInd = clientRequest.requestTarget.find("?");
-
-		const string appName = firstQuestionMarkInd != string::npos ?
-			clientRequest.requestTarget.substr(1, firstQuestionMarkInd - 1) :
-			clientRequest.requestTarget;
-
-		const auto potentialWebApp = this->webApps.find(appName);
-
-		//invoke web app if it exists, else handle request as web page.
-		if (potentialWebApp != this->webApps.end())
-		{
-			potentialWebApp->second->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
-		}
-		else
-		{
-			this->webApps.at("web")->HandleRequest(clientRequest.requestTarget, potentialClient->second, clientSocket);
-		}
+		potentialWebApp->second->HandleRequest(clientRequest.fullRequest, clientSocket);
+	}
+	else
+	{
+		this->webApps.at("web")->HandleRequest(clientRequest.requestTarget, clientSocket);
 	}
 
 	this->writeClientLog(clientRequest);
 }
 
-bool Server::SendPage(const Page* const page, int clientSocket, int statusCode) const
+bool Server::SendPage(const Page* const page, SOCKET clientSocket, int statusCode) const
 {
 	string contentType = "text";
 	string pageType = "html";
@@ -298,6 +302,21 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	const size_t nextPos2 = request.find_first_of(' ', nextPos + 1);
 	const string file(request, nextPos + 1, nextPos2 - nextPos - 1);
 	const size_t referPosition = request.find("Referer: ");
+
+	const auto firstQuestionMarkInd = file.find("?");
+
+	if (firstQuestionMarkInd != string::npos)
+	{
+		clientRequest.requestArguments = file.substr(firstQuestionMarkInd + 1);
+		clientRequest.requestTarget = file.substr(1, firstQuestionMarkInd - 1);
+	}
+	else
+	{
+		clientRequest.requestTarget = file;
+	}
+
+	clientRequest.fullRequest = file;
+
 	if (referPosition != string::npos) // link referred
 	{
 		const size_t nextPos3 = request.find_first_of('\r', referPosition + 9);
@@ -339,7 +358,6 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 		clientRequest.hostName = "'";
 	}
 	clientRequest.requestCommand = "GET";
-	clientRequest.requestTarget = file;
 
 	clientRequest.requestTime = "";
 }
@@ -358,7 +376,7 @@ void Server::writeClientLog(const ClientRequest& clientRequest) const
 		logFile << "*BEG*" << endl;
 		logFile << "T: " << asctime(localtm);
 		logFile << "Command: " << clientRequest.requestCommand << endl;
-		logFile << "Target: " << clientRequest.requestTarget << endl;
+		logFile << "Target: " << clientRequest.fullRequest << endl;
 		logFile << "Refer Domain: " << clientRequest.refererDomain << endl;
 		logFile << "Referer: " << clientRequest.referer << endl;
 		logFile << "Hostname: " << clientRequest.hostName << endl;
