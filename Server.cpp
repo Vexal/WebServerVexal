@@ -303,7 +303,7 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	const string file(request, nextPos + 1, nextPos2 - nextPos - 1);
 	const size_t referPosition = request.find("Referer: ");
 
-	const auto firstQuestionMarkInd = file.find("?");
+	const auto firstQuestionMarkInd = (file.length() > 4 && file.substr(0, 4) == "/vim") ? 4 : file.find("?");
 
 	if (firstQuestionMarkInd != string::npos)
 	{
