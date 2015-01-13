@@ -1,6 +1,3 @@
-// WebServerVexal.cpp : Defines the entry point for the console application.
-//
-
 #include "WebServerVexal.h"
 #include "Server.h"
 #include <iostream>
@@ -11,7 +8,6 @@
 #include "SerialHandler.h"
 using namespace std;
 
-bool resetServer = true;
 bool printEverything = false;
 bool printThreading = false;
 
@@ -32,7 +28,7 @@ int main(int argc, char* argv[])
 		}
 		else if(input.compare("reload") == 0)
 		{
-			resetServer = true;
+
 		}
 		else if (input == "tc")
 		{
@@ -67,27 +63,11 @@ int main(int argc, char* argv[])
 
 void ServerThread()
 {
-	Server* server = NULL;
+	Server* server = new Server("config.txt");
+	server->InitializeServer();
+
 	while(true)
 	{
-		if(resetServer)
-		{
-			if(server != NULL)
-			{
-				delete server;
-			}
-				
-			server = new Server("config.txt");
-			
-
-			server->InitializeServer();
-
-			resetServer = false;
-		};
-		
-		if(server != NULL)
-		{
-			server->Update();
-		}
+		server->Update();
 	}
 }

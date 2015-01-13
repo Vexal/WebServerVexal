@@ -65,25 +65,37 @@ Server::Server(const string& config)
 	}
 }
 
-
 bool Server::InitializeServer()
 {
 	this->initializeWSA();
-	std::cout << "Initializing Web Content... port: " << this->port << std::endl;
-	this->initializeWebContent("");
-	std::cout << "Initializing Server Socket..." << std::endl;
+	cout << "Initializing Server Socket..." << endl;
 	this->initializeTCPSocket();
-	std::cout << "Listening Server Socket..." << std::endl;
+	cout << "Listening Server Socket..." << endl;
 	this->listenSocket();
+	cout << "Initializing Web Content... port: " << this->port << endl;
+	this->initializeWebContent("");
+	cout << "Initializing " << maxThreadCount << " worker threads..." << endl;
+	this->initializeWorkerThreads();
+
+	cout << endl << "Initialization successful." << endl;
 	return true;
 }
 
-bool Server::initializeWebContent(const std::string& rootDirectory)
+bool Server::initializeWebContent(const string& rootDirectory)
 {
 	this->webApps["web"] = new WebPageApp(this);
 	this->webApps["vim"] = new VimWebApp(this);
 	this->webApps["compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;
+}
+
+void Server::initializeWorkerThreads()
+{
+	for (int a = 0; a < maxThreadCount; ++a)
+	{
+		thread workerThread = thread(&workerThreadHandler, this);
+		workerThread.detach();
+	}
 }
 
 void Server::Update()
@@ -102,23 +114,6 @@ bool Server::checkForNewConnection()
 	//block here until a connection is found.
 	const auto clientSocket = accept(this->serverSocket, &clientAddress, &clientAddressLength);
 
-	while (threadCount > maxThreadCount)
-	{
-		if(printThreading)
-			cout << "Waiting for available thread..." << endl;
-#ifdef _WIN32
-		Sleep(4);
-#else
-		timespec t = { 0, 16000000};
-		nanosleep(&t, nullptr);
-#endif
-	}
-
-	++threadCount;
-
-	if (printThreading)
-		cout << "Thread count: " << threadCount << endl;
-
 	if (clientSocket < 0 || clientSocket == INVALID_SOCKET)
 	{
 		cout << "inv" << endl;
@@ -131,16 +126,48 @@ bool Server::checkForNewConnection()
 	const string clientAddressString(inet_ntoa(add2->sin_addr));
 	if (printEverything)
 		cout << "Received connection from client with address " << clientAddressString << endl;
-	
-	//create a new thread to handle the client's request.
-	thread serverThread(&ForkThread, this, clientSocket, clientAddressString, false);
-	serverThread.detach();
+
+	//pass the client data to the worker thread queue.
+	this->workQueueMutex.lock();
+	this->workerDataQueue.push({ clientSocket, clientAddressString, false });
+	this->workQueueMutex.unlock();
 
 	return true;
 }
 
+void Server::workerThreadHandler(Server* server)
+{
+	while (true)
+	{
+		server->workQueueMutex.lock();
+		if (!server->workerDataQueue.empty())
+		{
+			const WorkerData clientData = server->workerDataQueue.front();
+			server->workerDataQueue.pop();
+			server->workQueueMutex.unlock();
+
+			++threadCount; //for debugging, inconsequential.
+			if (printThreading)
+				cout << "Thread count: " << threadCount << endl;
+
+			server->receiveThenHandleClientRequest(clientData.clientSocket, clientData.clientAddressString, clientData.keepAlive);
+			--threadCount;
+		}
+		else
+		{
+			server->workQueueMutex.unlock();
+#ifdef _WIN32
+			Sleep(4);
+#else //linux
+			timespec t = { 0, 16000000 };
+			nanosleep(&t, nullptr);
+#endif
+		}
+	}
+}
+
 #define MAX_REQUEST_SIZE 16284
-void ForkThread(Server* server, SOCKET clientSocket, const string& clientAddressString, bool keepAlive)
+void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& clientAddressString, bool keepAlive) const
 {
 	do 
 	{
@@ -157,17 +184,16 @@ void ForkThread(Server* server, SOCKET clientSocket, const string& clientAddress
 				cout << endl << endl << endl << bufferRcv << endl << endl << endl;
 			}
 
-			server->handleClientRequest(bufferRcv, clientSocket, clientAddressString);
+			this->handleClientRequest(bufferRcv, clientSocket, clientAddressString);
 		}
 		else
 			break;
 	} while (keepAlive);
 
 	closesocket2(clientSocket);
-	--threadCount;
 }
 
-void Server::handleClientRequest(const string& request, SOCKET clientSocket, const string& clientAddressString)
+void Server::handleClientRequest(const string& request, SOCKET clientSocket, const string& clientAddressString) const
 {
 	const size_t nextPos = request.find_first_of(' ');
 	const string command(request, 0, nextPos);
@@ -215,6 +241,7 @@ void Server::handleHTTPGetRequest(const string& request, SOCKET clientSocket, co
 
 bool Server::SendPage(const Page* const page, SOCKET clientSocket, int statusCode) const
 {
+	//need to move this function to another class, or perhaps the WebpageApp class.
 	string contentType = "text";
 	string pageType = "html";
 	string charSet = "charset=utf-8\r\n";
@@ -303,7 +330,7 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	const string file(request, nextPos + 1, nextPos2 - nextPos - 1);
 	const size_t referPosition = request.find("Referer: ");
 
-	const auto firstQuestionMarkInd = (file.length() > 4 && file.substr(0, 4) == "/vim") ? 4 : file.find("?");
+	const auto firstQuestionMarkInd = (file.length() > 4 && file.substr(0, 4) == "/vim") ? 4 : file.find("?"); //need to refactor this line.
 
 	if (firstQuestionMarkInd != string::npos)
 	{
@@ -390,6 +417,7 @@ void Server::writeClientLog(const ClientRequest& clientRequest) const
 
 string Server::cleanAssemblyString(string s, bool plussesAreSpaces)
 {
+	//need to move this function somewhere more appropriate.
 	string newString;
 	newString.reserve(s.length());
 

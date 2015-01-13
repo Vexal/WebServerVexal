@@ -27,6 +27,7 @@
 #endif
 #include <map>
 #include <mutex>
+#include <queue>
 
 typedef void(*WebSocketCallback)();
 
@@ -49,6 +50,13 @@ struct ClientRequest
 	std::string fullRequest;
 };
 
+struct WorkerData
+{
+	SOCKET clientSocket;
+	std::string clientAddressString;
+	bool keepAlive;
+};
+
 class Server
 {
 private:
@@ -58,18 +66,22 @@ private:
 	std::map<std::string, WebSocketCallback> webSocketMessageCallbacks;
 	std::map<std::string, WebApp*> webApps;
 	mutable std::mutex logMutex;
+	mutable std::mutex workQueueMutex;
+	std::queue<WorkerData> workerDataQueue;
 
 public:
 	Server(const std::string& config = "config.txt");
 	bool InitializeServer();
 	void Update();
-	void handleClientRequest(const std::string& request, SOCKET clientSocket, const std::string& clientAddressString);
 	bool SendPage(const Page* const page, SOCKET clientSocket, int statusCode = 200) const;
 	~Server();
 
 private:
+	void receiveThenHandleClientRequest(SOCKET clientSocket, const std::string& clientAddressString, bool keepAlive) const;
+	void handleClientRequest(const std::string& request, SOCKET clientSocket, const std::string& clientAddressString) const;
 	void handleHTTPGetRequest(const std::string& request, SOCKET clientSocket, const std::string& clientAddressString) const;
 	bool checkForNewConnection();
+	void initializeWorkerThreads();
 	bool initializeWSA();
 	bool initializeTCPSocket();
 	bool listenSocket();
@@ -82,8 +94,10 @@ private:
 
 public:
 	static std::string cleanAssemblyString(std::string s, bool plussesAreSpaces = true);
+
+private:
+	static void workerThreadHandler(Server* server);
 };
 
 void closesocket2(SOCKET);
 void PostError();
-void ForkThread(Server* server, SOCKET clientSocket, const std::string& clientAddressString, bool keepAlive);
