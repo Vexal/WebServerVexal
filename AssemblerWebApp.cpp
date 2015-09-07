@@ -97,7 +97,7 @@ void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
 
 	if (errorText == "")
 	{
-		if (finalCodeInd < 0)
+		if (finalCodeInd == file.npos)
 		{
 			errorText += "Error: code not found\n";
 		}

@@ -19,6 +19,7 @@ void Server::initializeWebSocketConnection(int clientSocket, const std::string& 
 	if (keyPosition != string::npos)
 	{
 		const size_t keyPositionEnd = request.find_first_of('\r', keyPosition + 19);
+		if (keyPositionEnd == request.npos) return;
 		keyString = request.substr(keyPosition + 19, keyPositionEnd - keyPosition - 19);
 	}
 

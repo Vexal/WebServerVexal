@@ -205,6 +205,7 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 void Server::handleClientRequest(const string& request, SOCKET clientSocket, const string& clientAddressString) const
 {
 	const size_t nextPos = request.find_first_of(' ');
+	if (nextPos == request.npos) return;
 	const string command(request, 0, nextPos);
 
 	if(command == "GET" || command == "POST")
@@ -219,6 +220,7 @@ void Server::handleHTTPGetRequest(const string& request, SOCKET clientSocket, co
 	if (connectionPosition != string::npos)
 	{
 		const size_t connectionPositionEnd = request.find_first_of('\r', connectionPosition + 12);
+		if (connectionPositionEnd == request.npos) return;
 		const string connectionString = request.substr(connectionPosition + 12, connectionPositionEnd - connectionPosition - 12);
 		if (connectionString == "Upgrade")
 		{
@@ -338,7 +340,9 @@ Server::~Server()
 void Server::parseClientHeader(const string& request, ClientRequest& clientRequest) const
 {
 	const size_t nextPos = request.find_first_of(' ');
+	if (nextPos == request.npos) return;
 	const size_t nextPos2 = request.find_first_of(' ', nextPos + 1);
+	if (nextPos2 == request.npos) return;
 	const string file(request, nextPos + 1, nextPos2 - nextPos - 1);
 	const size_t referPosition = request.find("Referer: ");
 
@@ -359,9 +363,12 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	if (referPosition != string::npos) // link referred
 	{
 		const size_t nextPos3 = request.find_first_of('\r', referPosition + 9);
+		if (nextPos3 == request.npos) return;
 		const string referString(request, referPosition + 9, nextPos3 - referPosition - 9);
 		const size_t colonPos = referString.find_first_of(':');
+		if (colonPos == request.npos) return;
 		const size_t nextSlashPos = referString.find_first_of('/', colonPos + 3);
+		if (nextSlashPos == request.npos) return;
 		const string referDomain(referString, colonPos + 3, nextSlashPos - colonPos - 3);
 		clientRequest.refererDomain = referDomain;
 		clientRequest.referer = referString;
@@ -375,6 +382,7 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	if (userAgentPosition != string::npos)
 	{
 		const size_t nextPos3 = request.find_first_of('\r', userAgentPosition + 12);
+		if (nextPos3 == request.npos) return;
 		const string userAgentString(request, userAgentPosition + 12, nextPos3 - userAgentPosition - 12);
 
 		clientRequest.userAgent = userAgentString;
@@ -388,6 +396,7 @@ void Server::parseClientHeader(const string& request, ClientRequest& clientReque
 	if (hostNamePo != string::npos)
 	{
 		const size_t nextPos3 = request.find_first_of('\r', hostNamePo + 6);
+		if (nextPos3 == request.npos) return;
 		const string userAgentString(request, hostNamePo + 6, nextPos3 - hostNamePo - 6);
 
 		clientRequest.hostName = userAgentString;
