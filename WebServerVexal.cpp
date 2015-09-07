@@ -12,7 +12,6 @@ bool printEverything = false;
 bool printThreading = false;
 
 extern atomic_int maxThreadCount;
-
 int main(int argc, char* argv[])
 {
 	thread serverThread(&ServerThread);

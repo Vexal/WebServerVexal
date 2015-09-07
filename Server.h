@@ -73,7 +73,7 @@ public:
 	Server(const std::string& config = "config.txt");
 	bool InitializeServer();
 	void Update();
-	bool SendPage(const Page* const page, SOCKET clientSocket, int statusCode = 200) const;
+	bool SendPage(const Page* const page, SOCKET clientSocket, int statusCode = 200, const std::string& redirectUrl = "") const;
 	~Server();
 
 private:

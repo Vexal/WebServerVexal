@@ -22,4 +22,5 @@ public:
 
 	std::string GetName() const { return this->name; }
 
+	static std::string GetStringParameter(const std::string& input, const std::string& parameterName); // return first instance of param
 };

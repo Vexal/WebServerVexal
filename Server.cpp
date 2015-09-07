@@ -21,6 +21,7 @@
 #else
 #include <time.h>
 #endif
+#include "AccountCreateApp.h"
 
 
 extern bool printEverything;
@@ -86,6 +87,7 @@ bool Server::initializeWebContent(const string& rootDirectory)
 	this->webApps["web"] = new WebPageApp(this);
 	this->webApps["vim"] = new VimWebApp(this);
 	this->webApps["compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
+	this->webApps["createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;
 }
 
@@ -184,7 +186,14 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 				cout << endl << endl << endl << bufferRcv << endl << endl << endl;
 			}
 
-			this->handleClientRequest(bufferRcv, clientSocket, clientAddressString);
+			try
+			{
+				this->handleClientRequest(bufferRcv, clientSocket, clientAddressString);
+			}
+			catch (const std::out_of_range& e)
+			{
+				cout << "Exception caught: Invalid request: " << bufferRcv << endl;
+			}
 		}
 		else
 			break;
@@ -198,7 +207,7 @@ void Server::handleClientRequest(const string& request, SOCKET clientSocket, con
 	const size_t nextPos = request.find_first_of(' ');
 	const string command(request, 0, nextPos);
 
-	if(command == "GET")
+	if(command == "GET" || command == "POST")
 	{
 		this->handleHTTPGetRequest(request, clientSocket, clientAddressString);
 	}
@@ -239,7 +248,7 @@ void Server::handleHTTPGetRequest(const string& request, SOCKET clientSocket, co
 	this->writeClientLog(clientRequest);
 }
 
-bool Server::SendPage(const Page* const page, SOCKET clientSocket, int statusCode) const
+bool Server::SendPage(const Page* const page, SOCKET clientSocket, int statusCode, const string& redirectUrl) const
 {
 	//need to move this function to another class, or perhaps the WebpageApp class.
 	string contentType = "text";
@@ -288,6 +297,9 @@ bool Server::SendPage(const Page* const page, SOCKET clientSocket, int statusCod
 		{
 		case 200:
 			status = "200 OK";
+			break;
+		case 302:
+			status = string("302 Found\r\n") + string("Location: ") + redirectUrl;
 			break;
 		case 404:
 			status = "404 NOT FOUND";
@@ -431,7 +443,7 @@ string Server::cleanAssemblyString(string s, bool plussesAreSpaces)
 		{
 			newString.append(" ");
 		}
-		else if (s[a] == '%')
+		else if (s[a] == '%' && a + 2 < s.length())
 		{
 			if (s[a + 2] == 'A' && s[a + 1] == '0')
 			{
