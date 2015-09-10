@@ -1,9 +1,9 @@
-#include "HttpServer.h"
+#include "Server.h"
 #include <iostream>
 #include <string>
 #include "ContentHost.h"
 
-bool HttpServer::initializeWSA()
+bool Server::initializeWSA()
 {
 #ifdef _WIN32
 	WSADATA wsaData;
@@ -14,7 +14,6 @@ bool HttpServer::initializeWSA()
 	if (iResult != 0)
 	{
 		std::cout << "WSA initialization failed: " << iResult << std::endl;
-		PostError();
 		return false;
 	}
 
@@ -23,7 +22,7 @@ bool HttpServer::initializeWSA()
 	return true;
 }
 
-bool HttpServer::initializeTCPSocket()
+bool Server::initializeTCPSocket()
 {
 	addrinfo *result = NULL, *ptr = NULL, hints;
 
@@ -38,7 +37,6 @@ bool HttpServer::initializeTCPSocket()
 	if (iResult != 0)
 	{
 		std::cout << "getaddrinfo failed: " << iResult << std::endl;
-		PostError();
 #ifdef _WIN32
 		WSACleanup();
 #endif
@@ -50,7 +48,6 @@ bool HttpServer::initializeTCPSocket()
 	if (this->serverSocket == INVALID_SOCKET)
 	{
 		std::cout << "Error at socket(): " << std::endl;
-		PostError();
 		freeaddrinfo(result);
 #ifdef _WIN32
 		WSACleanup();
@@ -65,7 +62,6 @@ bool HttpServer::initializeTCPSocket()
 	if (iResult2 == SOCKET_ERROR)
 	{
 		std::cout << "bind() failed with error: " << std::endl;
-		PostError();
 		freeaddrinfo(result);
 #ifdef _WIN32
 		closesocket(this->serverSocket);
@@ -81,7 +77,7 @@ bool HttpServer::initializeTCPSocket()
 	return true;
 }
 
-bool HttpServer::listenSocket()
+bool Server::listenSocket()
 {
 	auto res = listen(this->serverSocket, SOMAXCONN);
 
@@ -90,7 +86,6 @@ bool HttpServer::listenSocket()
 	if (res == SOCKET_ERROR)
 	{
 		std::cout << "Listen failed with error: " << std::endl;
-		PostError();
 #ifdef _WIN32
 		closesocket(this->serverSocket);
 		WSACleanup();
@@ -106,15 +101,9 @@ bool HttpServer::listenSocket()
 
 void closesocket2(SOCKET socket)
 {
-	//std::cout << "closing socket " << socket << std::endl;
 #ifdef _WIN32
 	closesocket(socket);
 #else
 	close(socket);
 #endif
-}
-
-void PostError()
-{
-	std::cout << "ERROR" << std::endl;
 }

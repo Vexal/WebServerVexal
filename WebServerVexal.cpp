@@ -1,11 +1,11 @@
 #include "WebServerVexal.h"
-#include "HttpServer.h"
 #include <iostream>
 #include <thread>
 #include <string>
 #include <fstream>
 #include <atomic>
 #include "SerialHandler.h"
+#include "Server.h"
 using namespace std;
 
 bool printEverything = false;
@@ -62,11 +62,11 @@ int main(int argc, char* argv[])
 
 void ServerThread()
 {
-	HttpServer* server = new HttpServer("config.txt");
-	server->InitializeServer();
+	Server server("config.txt");
+	server.InitializeServer();
 
 	while(true)
 	{
-		server->Update();
+		server.Update();
 	}
 }
