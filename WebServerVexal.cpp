@@ -1,5 +1,5 @@
 #include "WebServerVexal.h"
-#include "Server.h"
+#include "HttpServer.h"
 #include <iostream>
 #include <thread>
 #include <string>
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
 void ServerThread()
 {
-	Server* server = new Server("config.txt");
+	HttpServer* server = new HttpServer("config.txt");
 	server->InitializeServer();
 
 	while(true)

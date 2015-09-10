@@ -11,6 +11,6 @@ private:
 	const Page* const assemblerPage;
 
 public:
-	AssemblerWebApp(Server* server, const Folder* const rootDirectory);
+	AssemblerWebApp(HttpServer* server, const Folder* const rootDirectory);
 	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) override;
 };

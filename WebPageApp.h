@@ -14,7 +14,7 @@ private:
 	std::map<std::string, ContentHost*> virtualServers;
 
 public:
-	WebPageApp(Server* server);
+	WebPageApp(HttpServer* server);
 	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) override;
 	const Folder* const GetRootDirectory(const std::string& hostName) const { return this->virtualServers.at(hostName)->GetRootDirectory(); }
 

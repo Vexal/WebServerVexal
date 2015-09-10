@@ -6,17 +6,17 @@
 #define SOCKET int
 #endif
 
-class Server;
+class HttpServer;
 class Client;
 
 class WebApp
 {
 protected:
 	const std::string name;
-	Server* const server;
+	HttpServer* const server;
 
 public:
-	WebApp(const std::string& name, Server* server);
+	WebApp(const std::string& name, HttpServer* server);
 	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) = 0;
 	virtual ~WebApp();
 

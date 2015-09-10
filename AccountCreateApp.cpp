@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "Server.h"
+#include "HttpServer.h"
 #include "Folder.h"
 #include "Page.h"
 #include "WebPageApp.h"
@@ -9,7 +9,7 @@
 
 using namespace std;
 
-AccountCreateApp::AccountCreateApp(Server* server, const Folder* const rootDirectory) :
+AccountCreateApp::AccountCreateApp(HttpServer* server, const Folder* const rootDirectory) :
 	WebApp("createaccount", server),
 	rootDirectory(rootDirectory),
 	accountPage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/MMORTS/MMORTS.html"))),

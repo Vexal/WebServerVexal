@@ -1,7 +1,7 @@
 #include "WebPageApp.h"
 #include "Folder.h"
 #include "Page.h"
-#include "Server.h"
+#include "HttpServer.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -10,7 +10,7 @@ using namespace std;
 
 map<string, int> WebPageApp::viewCounts;
 
-WebPageApp::WebPageApp(Server* server) :
+WebPageApp::WebPageApp(HttpServer* server) :
 	WebApp("web", server)
 {
 	ifstream inputFile("viewcounts.txt");

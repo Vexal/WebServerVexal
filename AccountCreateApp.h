@@ -14,6 +14,6 @@ private:
 	UserDAO* const userDAO;
 
 public:
-	AccountCreateApp(Server* server, const Folder* const rootDirectory);
+	AccountCreateApp(HttpServer* server, const Folder* const rootDirectory);
 	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) override;
 };

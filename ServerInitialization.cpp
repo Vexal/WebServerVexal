@@ -1,9 +1,9 @@
-#include "Server.h"
+#include "HttpServer.h"
 #include <iostream>
 #include <string>
 #include "ContentHost.h"
 
-bool Server::initializeWSA()
+bool HttpServer::initializeWSA()
 {
 #ifdef _WIN32
 	WSADATA wsaData;
@@ -23,7 +23,7 @@ bool Server::initializeWSA()
 	return true;
 }
 
-bool Server::initializeTCPSocket()
+bool HttpServer::initializeTCPSocket()
 {
 	addrinfo *result = NULL, *ptr = NULL, hints;
 
@@ -81,7 +81,7 @@ bool Server::initializeTCPSocket()
 	return true;
 }
 
-bool Server::listenSocket()
+bool HttpServer::listenSocket()
 {
 	auto res = listen(this->serverSocket, SOMAXCONN);
 

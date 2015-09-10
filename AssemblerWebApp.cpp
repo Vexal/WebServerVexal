@@ -1,5 +1,5 @@
 #include "AssemblerWebApp.h"
-#include "Server.h"
+#include "HttpServer.h"
 #include "Assembler/Assembler.h"
 #include "Assembler/Simulator.h"
 #include "Folder.h"
@@ -10,7 +10,7 @@
 using namespace std;
 using namespace CS350;
 
-AssemblerWebApp::AssemblerWebApp(Server* server, const Folder* const rootDirectory) :
+AssemblerWebApp::AssemblerWebApp(HttpServer* server, const Folder* const rootDirectory) :
 	WebApp("compile", server),
 	rootDirectory(rootDirectory),
 	assemblerPage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Assembler/Assembler.html")))
@@ -109,7 +109,7 @@ void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
 		else
 		{
 			rest = rest.substr(finalCodeInd + 9);
-			finalCode = Server::cleanAssemblyString(rest);
+			finalCode = HttpServer::cleanAssemblyString(rest);
 		}
 
 		Assembler ourAssembler(finalCode, endianType, useHProtection, createStack);

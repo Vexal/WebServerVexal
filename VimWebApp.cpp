@@ -1,17 +1,17 @@
 #include "VimWebApp.h"
-#include "Server.h"
+#include "HttpServer.h"
 #include "Page.h"
 
 using namespace std;
 
-VimWebApp::VimWebApp(Server* server) :
+VimWebApp::VimWebApp(HttpServer* server) :
 	WebApp("vim", server)
 {
 }
 
 void VimWebApp::HandleRequest(const string& file, SOCKET clientSocket)
 {
-	const string codeLine = Server::cleanAssemblyString(file.substr(5), false);
+	const string codeLine = HttpServer::cleanAssemblyString(file.substr(5), false);
 	const string pageHeader = R"(<!DOCTYPE html>
 						<HTML prefix="og: http://ogp.me/ns#">
 						<head>
