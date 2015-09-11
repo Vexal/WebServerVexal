@@ -12,7 +12,7 @@ WebApp::~WebApp()
 {
 }
 
-std::string WebApp::GetStringParameter(const std::string & input, const std::string & parameterName)
+std::string WebApp::GetStringParameter(const std::string& input, const std::string& parameterName)
 {
 	const string builtParam = "&" + parameterName + "=";
 	auto paramInd = input.find(builtParam);

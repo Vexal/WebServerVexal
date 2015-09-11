@@ -70,25 +70,25 @@ void HttpServer::handleHTTPGetRequest(const string& request, SOCKET clientSocket
 	if (connectionType == ConnectionType::UPGRADE)
 	{
 		//The client is attempting to initialize a WebSocket protocol connection
-		this->initializeWebSocketConnection(clientSocket, request);
-		this->maintainWebSocketConnection(clientSocket);
+		//this->initializeWebSocketConnection(clientSocket, request);
+		//this->maintainWebSocketConnection(clientSocket);
 		return;
 	}
 
 	ClientRequest clientRequest = { clientAddressString, "", "", "", "", "", "", "", "", "" };
 
 	this->parseClientHeader(request, clientRequest);
-
+	const unordered_map<string, string> paramMap = HttpServer::GetHttpGetParameters(request);
 	const auto potentialWebApp = this->webApps.find(clientRequest.requestTarget);
 
 	//invoke web app if it exists, else handle request as web page.
 	if (potentialWebApp != this->webApps.end())
 	{
-		potentialWebApp->second->HandleRequest(clientRequest.fullRequest, clientSocket);
+		potentialWebApp->second->HandleRequest(clientSocket, { clientRequest.fullRequest, paramMap });
 	}
 	else
 	{
-		this->webApps.at("web")->HandleRequest(clientRequest.requestTarget, clientSocket);
+		this->webApps.at("web")->HandleRequest(clientSocket, { clientRequest.fullRequest, paramMap });
 	}
 
 	this->writeClientLog(clientRequest);
@@ -187,9 +187,9 @@ HttpServer::~HttpServer()
 void HttpServer::parseClientHeader(const string& request, ClientRequest& clientRequest) const
 {
 	const size_t nextPos = request.find_first_of(' ');
-	if (nextPos == request.npos) return;
+	if (nextPos == string::npos) return;
 	const size_t nextPos2 = request.find_first_of(' ', nextPos + 1);
-	if (nextPos2 == request.npos) return;
+	if (nextPos2 == string::npos) return;
 	const string file(request, nextPos + 1, nextPos2 - nextPos - 1);
 	const size_t referPosition = request.find("Referer: ");
 
@@ -210,12 +210,12 @@ void HttpServer::parseClientHeader(const string& request, ClientRequest& clientR
 	if (referPosition != string::npos) // link referred
 	{
 		const size_t nextPos3 = request.find_first_of('\r', referPosition + 9);
-		if (nextPos3 == request.npos) return;
+		if (nextPos3 == string::npos) return;
 		const string referString(request, referPosition + 9, nextPos3 - referPosition - 9);
 		const size_t colonPos = referString.find_first_of(':');
-		if (colonPos == request.npos) return;
+		if (colonPos == string::npos) return;
 		const size_t nextSlashPos = referString.find_first_of('/', colonPos + 3);
-		if (nextSlashPos == request.npos) return;
+		if (nextSlashPos == string::npos) return;
 		const string referDomain(referString, colonPos + 3, nextSlashPos - colonPos - 3);
 		clientRequest.refererDomain = referDomain;
 		clientRequest.referer = referString;
@@ -229,7 +229,7 @@ void HttpServer::parseClientHeader(const string& request, ClientRequest& clientR
 	if (userAgentPosition != string::npos)
 	{
 		const size_t nextPos3 = request.find_first_of('\r', userAgentPosition + 12);
-		if (nextPos3 == request.npos) return;
+		if (nextPos3 == string::npos) return;
 		const string userAgentString(request, userAgentPosition + 12, nextPos3 - userAgentPosition - 12);
 
 		clientRequest.userAgent = userAgentString;
@@ -336,18 +336,21 @@ HttpRequestTypes HttpServer::GetHttpRequestType(const string& request)
 
 unordered_map<string, string> HttpServer::GetHttpGetParameters(const string& getRequest)
 {
+	const size_t requestStart = 4;
+	//const size_t requestSize = getR
+	const string fullGetString = getRequest.substr(4, getRequest.find_first_of(' ', 4) - 4);
 	unordered_map<string, string> paramMap;
-	size_t currentInd = getRequest.find_first_of('?');
+	size_t currentInd = fullGetString.find_first_of('?');
 
-	while (currentInd != getRequest.npos)
+	while (currentInd != string::npos)
 	{
 		++currentInd;
-		if (currentInd > getRequest.length())
+		if (currentInd > fullGetString.length())
 			break;
 
-		const size_t nextInd = getRequest.find_first_of('&', currentInd);
+		const size_t nextInd = fullGetString.find_first_of('&', currentInd);
 
-		const string paramAndValue = getRequest.substr(currentInd, nextInd - currentInd);
+		const string paramAndValue = fullGetString.substr(currentInd, nextInd - currentInd);
 		const size_t equals = paramAndValue.find_first_of('=');
 		const string param = paramAndValue.substr(0, equals);
 		const string value = paramAndValue.substr(equals + 1);
@@ -383,7 +386,7 @@ ConnectionType HttpServer::GetConnectionType(const string& request)
 	if (connectionPosition != string::npos)
 	{
 		const size_t connectionPositionEnd = request.find_first_of('\r', connectionPosition + 12);
-		if (connectionPositionEnd == request.npos) return ConnectionType::NONE;
+		if (connectionPositionEnd == string::npos) return ConnectionType::NONE;
 		const string connectionString = request.substr(connectionPosition + 12, connectionPositionEnd - connectionPosition - 12);
 		if (connectionString == "Upgrade")
 		{

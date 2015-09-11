@@ -1,10 +1,13 @@
 #pragma once
 #include <string>
+#include <unordered_map>
 #ifdef _WIN32
 #include <winsock2.h>
 #else
 #define SOCKET int
 #endif
+
+#include "HttpRequest.h"
 
 class HttpServer;
 class Client;
@@ -17,7 +20,7 @@ protected:
 
 public:
 	WebApp(const std::string& name, HttpServer* server);
-	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) = 0;
+	virtual void HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest) = 0;
 	virtual ~WebApp();
 
 	std::string GetName() const { return this->name; }

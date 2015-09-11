@@ -17,11 +17,8 @@ AssemblerWebApp::AssemblerWebApp(HttpServer* server, const Folder* const rootDir
 {
 }
 
-void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
+void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
-	string file = request;
-	string rest = file;
-
 	vector<string> replaceTokens;
 	vector<string> replaceTexts;
 
@@ -30,32 +27,31 @@ void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
 	const string firstHalf2 = "<textarea spellcheck='false' rows = '20' cols = '40' name = 'comment'>";
 	const string secondHalf2 = "</textarea>";
 	string errorText = "";
-	string userName = "";
 	string assembledCode = "";
-	string finalCode = "";
 
-	const auto finalCodeInd = file.find("&comment=");
-	const auto stepCountInd = file.find("&stepcount=");
-	const auto originalInd = file.find("=16bit");
-
-	const bool useHProtection = file.find("&hprot=on") != string::npos;
-	const bool createStack = file.find("stack=createstack") != string::npos;
-	const bool useSimulator = stepCountInd != string::npos;
+	const bool useHProtection = httpRequest.GetParameter("hprot") == "on";
+	const bool createStack = httpRequest.GetParameter("stack") == "createstack";
+	const bool useSimulator = !httpRequest.GetParameter("stepcount").empty();
+	
+	string code = httpRequest.GetParameter("comment");
+	const string username = httpRequest.GetParameter("username");
 
 	CS350::ENDIANESS endianType = CS350::CS_ORIGINAL;
-	if (file.find("=littleendian") != string::npos)
+
+	const string endianness = httpRequest.GetParameter("endian");
+	if (endianness == "littleendian")
 	{
 		endianType = CS350::CS_LITTLE_ENDIAN;
 		replaceTokens.push_back("~little");
 		replaceTexts.push_back(" checked");
 	}
-	else if (file.find("=bigendian") != string::npos)
+	else if (endianness == "bigendian")
 	{
 		endianType = CS350::CS_BIG_ENDIAN;
 		replaceTokens.push_back("~big");
 		replaceTexts.push_back(" checked");
 	}
-	else if (file.find("=indian") != string::npos)
+	else if (endianness == "indian")
 	{
 		endianType = CS350::CS_INDIAN;
 		replaceTokens.push_back("~indian");
@@ -66,76 +62,48 @@ void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
 		replaceTokens.push_back("~16b");
 		replaceTexts.push_back(" checked");
 	}
-	if (rest.length() <= finalCodeInd + 9)
+
+	if (code.empty())
 	{
 		errorText += "missing code";
 	}
-	if (file.find("username=") == string::npos)
+
+	if (username.empty())
 	{
 		errorText += "missing user name\n";
 	}
-	else
-	{
-		const auto nextAmpersand = rest.find("&");
-		if (nextAmpersand != string::npos)
-		{
-			userName = rest.substr(18, nextAmpersand - 18);
-			if (userName.length() > 0)
-			{
-				cout << "Initiating a compile for user " << userName << endl;
-			}
-			else
-			{
-				errorText += "Username too short\n";
-			}
-		}
-		else
-		{
-			errorText += "Invalid user name format\n";
-		}
-	}
 
-	if (errorText == "")
+	if (errorText.empty())
 	{
-		if (finalCodeInd == file.npos)
-		{
-			errorText += "Error: code not found\n";
-		}
-
 		if (createStack)
 		{
-			finalCode = Assembler::GenerateStackCode();
+			code = Assembler::GenerateStackCode();
 		}
 		else
 		{
-			rest = rest.substr(finalCodeInd + 9);
-			finalCode = HttpServer::cleanAssemblyString(rest);
+			code = HttpServer::cleanAssemblyString(code);
 		}
 
-		Assembler ourAssembler(finalCode, endianType, useHProtection, createStack);
+		Assembler ourAssembler(code, endianType, useHProtection, createStack);
 		assembledCode = ourAssembler.Assemble();
 		errorText += ourAssembler.GetErrorText();
 		Simulator simulator(ourAssembler.GetMachineCode(), ourAssembler.GetLineDataType());
 		size_t stepCt = ourAssembler.GetMachineCode().size();
 		string stepCount = to_string(stepCt);
 
-		if (useSimulator && file.length() > stepCountInd + 1)
+		if (useSimulator)
 		{
-			const auto nextAmpersand = file.substr(stepCountInd + 1).find("&");
-			if (nextAmpersand != string::npos)
+			const string stepCount2 = httpRequest.GetParameter("stepcount");
+			stringstream sp(stepCount2);
+			unsigned int sentStep = 0;
+			sp >> sentStep;
+			if (sentStep > stepCt && sentStep < 600)
 			{
-				const string stepCount2 = file.substr(stepCountInd + strlen("&stepcount="), (nextAmpersand)-strlen("&stepcount=") + 1);
-				stringstream sp(stepCount2);
-				unsigned int sentStep = 0;
-				sp >> sentStep;
-				if (sentStep > stepCt && sentStep < 600)
-				{
-					stepCt = sentStep;
-					stepCount = stepCount2;
-				}
+				stepCt = sentStep;
+				stepCount = stepCount2;
 			}
 		}
-
+	
 		simulator.Run(stepCt);
 		ProgramState endState = simulator.GetCurrentProgramState();
 		replaceTokens.push_back("~sim");
@@ -162,10 +130,10 @@ void AssemblerWebApp::HandleRequest(const string& request, SOCKET clientSocket)
 	}
 
 	replaceTokens.push_back("name='username' value='");
-	replaceTexts.push_back(userName + "'");
+	replaceTexts.push_back(username + "'");
 
 	replaceTokens.push_back("form='usrform'>");
-	replaceTexts.push_back(finalCode);
+	replaceTexts.push_back(code);
 
 	replaceTokens.push_back("~ins");
 

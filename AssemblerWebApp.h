@@ -12,5 +12,5 @@ private:
 
 public:
 	AssemblerWebApp(HttpServer* server, const Folder* const rootDirectory);
-	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) override;
+	virtual void HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest) override;
 };

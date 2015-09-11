@@ -35,11 +35,11 @@ WebPageApp::WebPageApp(HttpServer* server) :
 	this->virtualServers["OtherContent/"] = new ContentHost("OtherContent");
 }
 
-void WebPageApp::HandleRequest(const string& request, SOCKET clientSocket)
+void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
 	const Folder* const dir = this->virtualServers.at("Content/")->GetRootDirectory();
 
-	const Page* const page = request == "/" ? dir->GetDefaultPage() : static_cast<Page*>(dir->GetPage(request));
+	const Page* const page = httpRequest.request == "/" ? dir->GetDefaultPage() : static_cast<Page*>(dir->GetPage(httpRequest.request));
 
 	if (page != NULL)
 	{

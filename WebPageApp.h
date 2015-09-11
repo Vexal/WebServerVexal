@@ -15,7 +15,7 @@ private:
 
 public:
 	WebPageApp(HttpServer* server);
-	virtual void HandleRequest(const std::string& request, SOCKET clientSocket) override;
+	virtual void HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest) override;
 	const Folder* const GetRootDirectory(const std::string& hostName) const { return this->virtualServers.at(hostName)->GetRootDirectory(); }
 
 public:

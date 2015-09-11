@@ -22,10 +22,11 @@ string CreateError(const string& message)
 {
 	return "<span class='accerr'>" + message + "</span>\n";
 }
-void AccountCreateApp::HandleRequest(const string& request, SOCKET clientSocket)
+
+void AccountCreateApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
-	const string accountName = GetStringParameter(request, "accountname");
-	const string password = GetStringParameter(request, "password");
+	const string accountName = GetStringParameter(httpRequest.request, "accountname");
+	const string password = GetStringParameter(httpRequest.request, "password");
 
 	string errorText = "";
 
