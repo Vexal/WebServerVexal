@@ -63,7 +63,7 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 		replaceTexts.push_back(" checked");
 	}
 
-	if (code.empty())
+	if (code.empty() && !createStack)
 	{
 		errorText += "missing code";
 	}
