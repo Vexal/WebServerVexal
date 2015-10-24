@@ -15,4 +15,3 @@ public:
 };
 
 struct DuplicateAccountException {};
-struct DataErrorException { const std::string error; };

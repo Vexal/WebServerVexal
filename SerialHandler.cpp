@@ -18,7 +18,7 @@ HANDLE hSerial;
 COMSTAT status;
 //Keep track of last error
 DWORD errors;
-LPCSTR portName = "COM4";
+LPCSTR portName = "COM3";
 #endif
 
 using namespace std;

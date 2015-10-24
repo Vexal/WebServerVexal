@@ -5,7 +5,8 @@
 #include "Page.h"
 #include "WebPageApp.h"
 #include "AccountCreateApp.h"
-#include "DbUserDAO.h"
+#include "DataAccess/DbUserDAO.h"
+#include "DataAccess/DataErrorException.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ AccountCreateApp::AccountCreateApp(HttpServer* server, const Folder* const rootD
 	rootDirectory(rootDirectory),
 	accountPage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/MMORTS/MMORTS.html"))),
 	accountSuccessfulPage((static_cast<const Page* const>(rootDirectory->GetPage("/Projects/MMORTS/Account.html")))),
-	userDAO(new DbUserDAO())
+	userDAO(DbUserDAO::Create())
 {
 }
 
@@ -42,26 +43,20 @@ void AccountCreateApp::HandleRequest(SOCKET clientSocket, const HttpRequest& htt
 
 	if (errorText.empty())
 	{
-		if (this->userDAO->IsValid())
+		try
 		{
-			try
-			{
-				this->userDAO->CreateAccount(accountName, password);
-			}
-			catch (const DuplicateAccountException e)
-			{
-				errorText += CreateError("Error: username " + accountName + " already exists.");
-			}
-			catch (const DataErrorException e)
-			{
-				errorText += CreateError("Data Error: " + e.error);
-			}
+			this->userDAO->CreateAccount(accountName, password);
 		}
-		else
+		catch (const DuplicateAccountException& e)
 		{
-			errorText += CreateError("Database Error");
+			errorText += CreateError("Error: username " + accountName + " already exists.");
+		}
+		catch (const DataErrorException& e)
+		{
+			errorText += CreateError("Data Error: " + e.error);
 		}
 	}
+
 	vector<string> replaceTokens;
 	vector<string> replaceTexts;
 
@@ -77,6 +72,8 @@ void AccountCreateApp::HandleRequest(SOCKET clientSocket, const HttpRequest& htt
 	else
 	{
 		cout << "Account creation for account " << accountName << " failed." << endl;
+		cout << errorText << endl;
+
 		replaceTokens.push_back("Create result: ");
 		replaceTexts.push_back(errorText);
 		const Page* const newPage = accountPage->ClonePage(replaceTokens, replaceTexts);

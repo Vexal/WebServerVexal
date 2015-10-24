@@ -22,6 +22,7 @@
 #endif
 #include "AccountCreateApp.h"
 #include "HttpServer.h"
+#include "HomeAutomation\HomeAutomationApp.h"
 
 
 extern bool printEverything;
@@ -44,12 +45,12 @@ bool HttpServer::initializeWebContent(const string& rootDirectory)
 	this->webApps["vim"] = new VimWebApp(this);
 	this->webApps["compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	this->webApps["createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
+	this->webApps["homeautomation"] = new HomeAutomationApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;
 }
 
 void HttpServer::HandleClientRequest(const string& request, SOCKET clientSocket, const string& clientAddressString) const
-{
-	
+{	
 	const HttpRequestTypes requestType = HttpServer::GetHttpRequestType(request);
 	switch (requestType)
 	{
@@ -70,8 +71,8 @@ void HttpServer::handleHTTPGetRequest(const string& request, SOCKET clientSocket
 	if (connectionType == ConnectionType::UPGRADE)
 	{
 		//The client is attempting to initialize a WebSocket protocol connection
-		//this->initializeWebSocketConnection(clientSocket, request);
-		//this->maintainWebSocketConnection(clientSocket);
+		this->initializeWebSocketConnection(clientSocket, request);
+		this->maintainWebSocketConnection(clientSocket);
 		return;
 	}
 
@@ -79,16 +80,19 @@ void HttpServer::handleHTTPGetRequest(const string& request, SOCKET clientSocket
 
 	this->parseClientHeader(request, clientRequest);
 	const unordered_map<string, string> paramMap = HttpServer::GetHttpGetParameters(request);
+	const unordered_map<string, string> headers;
+
+	const HttpRequest httpRequest = { clientRequest.fullRequest, paramMap, headers };
 	const auto potentialWebApp = this->webApps.find(clientRequest.requestTarget);
 
 	//invoke web app if it exists, else handle request as web page.
 	if (potentialWebApp != this->webApps.end())
 	{
-		potentialWebApp->second->HandleRequest(clientSocket, { clientRequest.fullRequest, paramMap });
+		potentialWebApp->second->HandleRequest(clientSocket, httpRequest);
 	}
 	else
 	{
-		this->webApps.at("web")->HandleRequest(clientSocket, { clientRequest.fullRequest, paramMap });
+		this->webApps.at("web")->HandleRequest(clientSocket, httpRequest);
 	}
 
 	this->writeClientLog(clientRequest);
@@ -102,10 +106,8 @@ bool HttpServer::SendPage(const Page* const page, SOCKET clientSocket, int statu
 	string charSet = "charset=utf-8\r\n";
 	string status = "200 OK";
 
-	if(page != NULL)
+	if(page != nullptr)
 	{
-		char* recvbuf = page->GetContent();
-		char headerType = 0;
 		switch (page->GetContentType())
 		{
 		case ContentType::TEXT:

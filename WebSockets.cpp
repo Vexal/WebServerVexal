@@ -273,6 +273,20 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 				cout << "..FAILED" << endl;
 			}
 		}
+		else if (decodedMessage == "toggle")
+		{
+			cout << "Sending TOGGLE command to serial...";
+			char buf[7] = "toggle";
+			buf[6] = '\n';
+			if (WriteData(buf, 7))
+			{
+				cout << "..Successful" << endl;
+			}
+			else
+			{
+				cout << "..FAILED" << endl;
+			}
+		}
 		cout << endl;
 	}
 }
