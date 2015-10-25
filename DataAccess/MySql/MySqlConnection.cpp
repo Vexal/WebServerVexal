@@ -52,6 +52,7 @@ MySqlConnection::MySqlConnection(sql::Driver* const driver, const DbConfig& dbCo
 
 MySqlConnection::~MySqlConnection()
 {
+	cout << "freeing even though exception" << endl;
 	this->cleanUp();
 }
 

@@ -18,7 +18,9 @@ protected:
 	DbUserDAO();
 
 public:
-	int CreateAccount(const std::string& accountName, const std::string& password) override;
+	virtual int CreateAccount(const std::string& accountName, const std::string& password) override;
+	virtual int GetUserId(const std::string& accountName, const std::string& password) override;
+	virtual std::unordered_set<std::string> GetAccessTypes(const int userId) override;
 	virtual ~DbUserDAO();
 
 	static DbUserDAO* Create();

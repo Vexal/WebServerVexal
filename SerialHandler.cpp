@@ -103,6 +103,8 @@ bool InitializeSerialConnection()
 	}
 	*/
 	return connected;
+#else //linux
+
 #endif
 }
 
@@ -126,6 +128,7 @@ bool WriteData(const char *buffer, unsigned int nbChar)
 	}
 	else
 		return true;
+#else
 #endif
 }
 

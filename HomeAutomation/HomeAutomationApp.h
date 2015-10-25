@@ -10,6 +10,7 @@ class HomeAutomationApp : public WebApp
 private:
 	const Folder* const rootDirectory;
 	const Page* const garagePage;
+	const Page* const authenticationResponsePage;
 	UserDAO* const userDAO;
 
 public:
