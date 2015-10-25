@@ -1,11 +1,11 @@
 #include <iostream>
 
 #include "HomeAutomationApp.h"
-#include "..\DataAccess\DbUserDAO.h"
-#include "..\SerialHandler.h"
-#include "..\HttpServer.h"
-#include "..\Folder.h"
-#include "..\Page.h"
+#include "../DataAccess/DbUserDAO.h"
+#include "../SerialHandler.h"
+#include "../HttpServer.h"
+#include "../Folder.h"
+#include "../Page.h"
 
 using namespace std;
 
@@ -15,7 +15,7 @@ HomeAutomationApp::HomeAutomationApp(HttpServer* server, const Folder* const roo
 	garagePage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Garage/GarageControlPage.html"))),
 	userDAO(DbUserDAO::Create())
 {
-	cout << "Initializing Serial Connection..." << endl;
+	/*cout << "Initializing Serial Connection..." << endl;
 	if (InitializeSerialConnection())
 	{
 		cout << "Serial connection initialization successful." << endl;
@@ -23,7 +23,7 @@ HomeAutomationApp::HomeAutomationApp(HttpServer* server, const Folder* const roo
 	else
 	{
 		cout << "ERROR: Serial initialization failed." << endl;
-	}
+	}*/
 }
 
 void HomeAutomationApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)

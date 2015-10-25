@@ -22,7 +22,7 @@
 #endif
 #include "AccountCreateApp.h"
 #include "HttpServer.h"
-#include "HomeAutomation\HomeAutomationApp.h"
+#include "HomeAutomation/HomeAutomationApp.h"
 
 
 extern bool printEverything;
@@ -71,8 +71,8 @@ void HttpServer::handleHTTPGetRequest(const string& request, SOCKET clientSocket
 	if (connectionType == ConnectionType::UPGRADE)
 	{
 		//The client is attempting to initialize a WebSocket protocol connection
-		this->initializeWebSocketConnection(clientSocket, request);
-		this->maintainWebSocketConnection(clientSocket);
+		//this->initializeWebSocketConnection(clientSocket, request);
+		//this->maintainWebSocketConnection(clientSocket);
 		return;
 	}
 
@@ -338,6 +338,7 @@ HttpRequestTypes HttpServer::GetHttpRequestType(const string& request)
 
 unordered_map<string, string> HttpServer::GetHttpGetParameters(const string& getRequest)
 {
+	return unordered_map<string, string>();
 	const size_t requestStart = 4;
 	//const size_t requestSize = getR
 	const string fullGetString = getRequest.substr(4, getRequest.find_first_of(' ', 4) - 4);
@@ -370,6 +371,7 @@ unordered_map<string, string> HttpServer::GetHttpGetParameters(const string& get
 
 HttpRequestTypes HttpServer::GetHttpRequestTypeFromString(const string& requestWord)
 {
+	return HttpRequestTypes::GET;
 	if (requestWord == "GET")
 	{
 		return HttpRequestTypes::GET;

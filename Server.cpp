@@ -166,6 +166,7 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 				if (isHttpRequest)
 				{
 					this->httpServer.HandleClientRequest(bufferRcv, clientSocket, clientAddressString);
+
 				}
 				else
 				{
@@ -181,9 +182,5 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 			break;
 	} while (keepAlive);
 
-#ifdef _WIN32
-	closesocket(clientSocket);
-#else
-	close(socket);
-#endif
+	closesocket2(clientSocket);
 }

@@ -64,7 +64,9 @@ void MySqlConnection::cleanUp()
 
 	if (this->connection != nullptr)
 	{
+#ifdef _WIN32
 		if (this->connection->isValid())
+#endif
 		{
 			this->connection->close();
 		}
