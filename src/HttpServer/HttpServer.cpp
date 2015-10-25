@@ -1,18 +1,20 @@
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "HttpServer.h"
 #include <stdio.h>
 #include <iostream>
-#include "Page.h"
-#include "Folder.h"
 #include <thread>
 #include <ctime>
 #include <fstream>
-#include "ContentHost.h"
 #include <sstream>
-#include "AssemblerWebApp.h"
-#include "VimWebApp.h"
-#include "WebPageApp.h"
+#include "HttpServer.h"
+#include "../Page/ContentHost.h"
+#include "../Page/Folder.h"
+#include "../Page/Page.h"
+#include "../WebApp/AssemblerWebApp/AssemblerWebApp.h"
+#include "../WebApp/VimWebApp/VimWebApp.h"
+#include "../WebApp/WebPageApp/WebPageApp.h"
+#include "../WebApp/AccountCreateApp/AccountCreateApp.h"
+#include "../WebApp/HomeAutomation/HomeAutomationApp.h"
 
 #ifdef _WIN32
 #pragma comment(lib, "Ws2_32.lib")
@@ -20,9 +22,6 @@
 #else
 #include <time.h>
 #endif
-#include "AccountCreateApp.h"
-#include "HttpServer.h"
-#include "HomeAutomation/HomeAutomationApp.h"
 
 
 extern bool printEverything;

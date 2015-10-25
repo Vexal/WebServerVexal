@@ -1,7 +1,7 @@
 #include <iostream>
 #include "HttpServer.h"
-#include "SerialHandler.h"
-#include "trunk/src/hashlibpp.h"
+#include "../Serial/SerialHandler.h"
+#include "../trunk/src/hl_sha1wrapper.h"
 
 static const std::string base64_chars =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

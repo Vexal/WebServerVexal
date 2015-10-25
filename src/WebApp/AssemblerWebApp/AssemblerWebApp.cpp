@@ -1,11 +1,11 @@
-#include "AssemblerWebApp.h"
-#include "HttpServer.h"
-#include "Assembler/Assembler.h"
-#include "Assembler/Simulator.h"
-#include "Folder.h"
-#include "Page.h"
 #include <iostream>
-#include "WebPageApp.h"
+#include "AssemblerWebApp.h"
+#include "../WebPageApp/WebPageApp.h"
+#include "../../HttpServer/HttpServer.h"
+#include "../../Assembler/Assembler.h"
+#include "../../Assembler/Simulator.h"
+#include "../../Page/Folder.h"
+#include "../../Page/Page.h"
 
 using namespace std;
 using namespace CS350;

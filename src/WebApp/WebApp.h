@@ -7,7 +7,7 @@
 #define SOCKET int
 #endif
 
-#include "HttpRequest.h"
+#include "../HttpServer/HttpRequest.h"
 
 class HttpServer;
 class Client;

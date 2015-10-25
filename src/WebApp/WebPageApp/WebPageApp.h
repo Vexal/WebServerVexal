@@ -1,6 +1,6 @@
 #pragma once
-#include "WebApp.h"
-#include "ContentHost.h"
+#include "../WebApp.h"
+#include "../../Page/ContentHost.h"
 #include <map>
 
 class Page;

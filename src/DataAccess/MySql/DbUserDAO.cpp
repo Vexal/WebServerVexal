@@ -1,14 +1,14 @@
 #include <iostream>
+#include <fstream>
 #include <cppconn/driver.h>
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
-#include <fstream>
 
 #include "DbUserDAO.h"
-#include "MySql/MySqlConnection.h"
-#include "DataErrorException.h"
-#include "UserDAO.h"
+#include "MySqlConnection.h"
+#include "../DataErrorException.h"
+#include "../UserDAO.h"
 
 using namespace std;
 

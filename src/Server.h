@@ -30,7 +30,7 @@
 #define SOCKET int
 #endif
 
-#include "HttpServer.h"
+#include "HttpServer/HttpServer.h"
 
 struct WorkerData
 {

@@ -1,6 +1,6 @@
 #pragma once
-#include "UserDAO.h"
-#include "MySql/DbConfig.h"
+#include "../UserDAO.h"
+#include "DbConfig.h"
 
 namespace sql
 {

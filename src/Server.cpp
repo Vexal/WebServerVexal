@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "Server.h"
-#include "HttpServer.h"
+#include "HttpServer/HttpServer.h"
 
 using namespace std;
 

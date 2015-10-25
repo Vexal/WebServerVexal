@@ -1,10 +1,10 @@
-#include "WebPageApp.h"
-#include "Folder.h"
-#include "Page.h"
-#include "HttpServer.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include "WebPageApp.h"
+#include "../../Page/Folder.h"
+#include "../../Page/Page.h"
+#include "../../HttpServer/HttpServer.h"
 
 using namespace std;
 

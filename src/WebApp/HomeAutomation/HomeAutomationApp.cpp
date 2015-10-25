@@ -1,12 +1,12 @@
 #include <iostream>
 
 #include "HomeAutomationApp.h"
-#include "../DataAccess/DbUserDAO.h"
-#include "../SerialHandler.h"
-#include "../HttpServer.h"
-#include "../Folder.h"
-#include "../Page.h"
-#include "../DataAccess/DataErrorException.h"
+#include "../../DataAccess/MySql/DbUserDAO.h"
+#include "../../DataAccess/DataErrorException.h"
+#include "../../Serial/SerialHandler.h"
+#include "../../HttpServer/HttpServer.h"
+#include "../../Page/Folder.h"
+#include "../../Page/Page.h"
 
 using namespace std;
 

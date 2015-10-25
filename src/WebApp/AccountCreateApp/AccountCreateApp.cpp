@@ -1,12 +1,12 @@
 #include <iostream>
 
-#include "HttpServer.h"
-#include "Folder.h"
-#include "Page.h"
-#include "WebPageApp.h"
 #include "AccountCreateApp.h"
-#include "DataAccess/DbUserDAO.h"
-#include "DataAccess/DataErrorException.h"
+#include "../WebPageApp/WebPageApp.h"
+#include "../../HttpServer/HttpServer.h"
+#include "../../Page/Folder.h"
+#include "../../Page/Page.h"
+#include "../../DataAccess/MySql/DbUserDAO.h"
+#include "../../DataAccess/DataErrorException.h"
 
 using namespace std;
 
