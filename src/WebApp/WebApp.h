@@ -1,16 +1,15 @@
 #pragma once
 #include <string>
-#include <unordered_map>
 #ifdef _WIN32
 #include <winsock2.h>
 #else
 #define SOCKET int
 #endif
 
-#include "../HttpServer/HttpRequest.h"
 
 class HttpServer;
 class Client;
+struct HttpRequest;
 
 class WebApp
 {

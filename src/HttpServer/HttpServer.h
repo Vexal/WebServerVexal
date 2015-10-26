@@ -30,14 +30,13 @@
 #include <queue>
 #include <unordered_map>
 
-#include "HttpRequest.h"
-
 typedef void(*WebSocketCallback)();
 
 class Page;
 class Folder;
 class ContentHost;
 class WebApp;
+struct HttpRequest;
 
 class HttpServer
 {

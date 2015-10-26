@@ -7,6 +7,7 @@
 #include "../../Page/Page.h"
 #include "../../DataAccess/MySql/DbUserDAO.h"
 #include "../../DataAccess/DataErrorException.h"
+#include "../../HttpServer/HttpRequest.h"
 
 using namespace std;
 

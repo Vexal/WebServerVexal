@@ -8,6 +8,7 @@
 #include <sstream>
 #include "HttpServer.h"
 #include "HttpUtils.h"
+#include "HttpRequest.h"
 #include "../Util.h"
 #include "../Page/ContentHost.h"
 #include "../Page/Folder.h"
@@ -16,7 +17,7 @@
 #include "../WebApp/VimWebApp/VimWebApp.h"
 #include "../WebApp/WebPageApp/WebPageApp.h"
 #include "../WebApp/AccountCreateApp/AccountCreateApp.h"
-#include "../WebApp/HomeAutomation/HomeAutomationApp.h"
+#include "../WebApp/HomeAutomationWebApp/HomeAutomationWebApp.h"
 
 #ifdef _WIN32
 #pragma comment(lib, "Ws2_32.lib")
@@ -45,7 +46,7 @@ bool HttpServer::initializeWebContent(const string& rootDirectory)
 	this->webApps["/vim"] = new VimWebApp(this);
 	this->webApps["/compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	this->webApps["/createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
-	this->webApps["/homeautomation"] = new HomeAutomationApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
+	this->webApps["/homeautomation"] = new HomeAutomationWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;
 }
 

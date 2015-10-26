@@ -1,34 +1,29 @@
 #include <iostream>
 
-#include "HomeAutomationApp.h"
+#include "HomeAutomationWebApp.h"
 #include "../../DataAccess/MySql/DbUserDAO.h"
 #include "../../DataAccess/DataErrorException.h"
 #include "../../Serial/SerialHandler.h"
 #include "../../HttpServer/HttpServer.h"
+#include "../../HttpServer/HttpRequest.h"
 #include "../../Page/Folder.h"
 #include "../../Page/Page.h"
+#include "../../HomeAutomation/HomeAutomationController.h"
 
 using namespace std;
 
-HomeAutomationApp::HomeAutomationApp(HttpServer* server, const Folder* const rootDirectory) :
+HomeAutomationWebApp::HomeAutomationWebApp(HttpServer* server, const Folder* const rootDirectory) :
 	WebApp("homeautomation", server),
 	rootDirectory(rootDirectory),
 	garagePage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Garage/GarageControlPage.html"))),
 	authenticationResponsePage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Garage/AuthenticationResponse.html"))),
-	userDAO(DbUserDAO::Create())
+	userDAO(DbUserDAO::Create()),
+	controller(HomeAutomationController::Create())
 {
-	/*cout << "Initializing Serial Connection..." << endl;
-	if (InitializeSerialConnection())
-	{
-		cout << "Serial connection initialization successful." << endl;
-	}
-	else
-	{
-		cout << "ERROR: Serial initialization failed." << endl;
-	}*/
+	
 }
 
-void HomeAutomationApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
+void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
 	const string accountName = GetStringParameter(httpRequest.request, "accountname");
 	const string password = GetStringParameter(httpRequest.request, "password");
@@ -54,13 +49,6 @@ void HomeAutomationApp::HandleRequest(SOCKET clientSocket, const HttpRequest& ht
 	try
 	{
 		const int userId = this->userDAO->GetUserId(accountName, password);
-		if (userId <= 0)
-		{
-			cout << "Invalid Password Authentication" << endl;
-			this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
-			return;
-		}
-
 		accessTypes = this->userDAO->GetAccessTypes(userId);
 	}
 	catch (const DataErrorException& e)
@@ -79,11 +67,10 @@ void HomeAutomationApp::HandleRequest(SOCKET clientSocket, const HttpRequest& ht
 		return;
 	}
 
+	string resultStatusMessage;
+	const int resultErrorCode = this->controller->ActivateGarage(resultStatusMessage);
 
-	cout << "Sending TOGGLE command to serial...";
-	char buf[7] = "toggle";
-	buf[6] = '\n';
-	if (WriteData(buf, 7))
+	if (resultErrorCode == 0)
 	{
 		cout << "..Successful" << endl;
 		this->server->SendPage(this->garagePage, clientSocket, 302, "/projects/Garage/GarageControlPage.html");

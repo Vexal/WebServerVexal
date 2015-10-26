@@ -1,7 +1,8 @@
 #include "VimWebApp.h"
-#include "../../HttpServer/HttpServer.h"
 #include "../../Page/Page.h"
+#include "../../HttpServer/HttpServer.h"
 #include "../../HttpServer/HttpUtils.h"
+#include "../../HttpServer/HttpRequest.h"
 
 using namespace std;
 

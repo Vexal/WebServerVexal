@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 		else if (input.compare("initserial") == 0)
 		{
 			cout << "Initializing Arduino serial connection..";
-			if (InitializeSerialConnection())
+			if (Serial::InitializeSerialConnection())
 			{
 				cout << "..Successful" << endl;
 			}

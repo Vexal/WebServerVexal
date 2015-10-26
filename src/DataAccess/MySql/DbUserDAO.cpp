@@ -70,8 +70,6 @@ int DbUserDAO::GetUserId(const string& accountName, const string& password)
 	{
 		throw DataErrorException{ e.what() };
 	}
-
-	return true;
 }
 
 unordered_set<string> DbUserDAO::GetAccessTypes(const int userId)

@@ -7,6 +7,7 @@
 #include "../../Page/Folder.h"
 #include "../../Page/Page.h"
 #include "../../HttpServer/HttpUtils.h"
+#include "../../HttpServer/HttpRequest.h"
 
 using namespace std;
 using namespace CS350;

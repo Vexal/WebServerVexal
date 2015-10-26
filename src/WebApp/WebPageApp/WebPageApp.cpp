@@ -5,6 +5,7 @@
 #include "../../Page/Folder.h"
 #include "../../Page/Page.h"
 #include "../../HttpServer/HttpServer.h"
+#include "../../HttpServer/HttpRequest.h"
 
 using namespace std;
 
