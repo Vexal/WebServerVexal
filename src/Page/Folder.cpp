@@ -56,7 +56,7 @@ Folder::Folder(const string& fullPath, const string& name) :
 				char* pathChar = new char[strlenT(data.cFileName) + 1];
 				wcstombs_s(&convnum, pathChar, strlenT(data.cFileName) + 1, data.cFileName, strlenT(data.cFileName) + 1);
 				string s(pathChar);
-				this->pages[to_upper(pathChar, strlenT(data.cFileName))] = new Folder(this->fullPath + s + "/", s);
+				this->pages[Util::to_upper(pathChar, strlenT(data.cFileName))] = new Folder(this->fullPath + s + "/", s);
 				delete[] pathChar;
 			}
 			else
@@ -66,7 +66,7 @@ Folder::Folder(const string& fullPath, const string& name) :
 				wcstombs_s(&convnum, pathChar, strlenT(data.cFileName) + 1, data.cFileName, strlenT(data.cFileName) + 1);
 				string s(pathChar);
 				//wcout << L"Found file: " << data.cFileName << endl;
-				this->pages[to_upper(pathChar, strlenT(data.cFileName))] = new Page(this->fullPath + s, s);
+				this->pages[Util::to_upper(pathChar, strlenT(data.cFileName))] = new Page(this->fullPath + s, s);
 				delete[] pathChar;
 			}
 		}
@@ -90,12 +90,12 @@ Folder::Folder(const string& fullPath, const string& name) :
 			if(dir->d_type == DT_DIR)
 			{
 				//cout << "Found directory: " << this->fullPath << dir->d_name << endl;
-				this->pages[to_upper(dir->d_name, strlen(dir->d_name))] = new Folder(this->fullPath + dir->d_name + "/", dir->d_name);
+				this->pages[Util::to_upper(dir->d_name, strlen(dir->d_name))] = new Folder(this->fullPath + dir->d_name + "/", dir->d_name);
 			}
 			else
 			{
 				//cout << "Found file: " << dir->d_name << endl;
-				this->pages[to_upper(dir->d_name, strlen(dir->d_name))] = new Page(this->fullPath + dir->d_name, dir->d_name);
+				this->pages[Util::to_upper(dir->d_name, strlen(dir->d_name))] = new Page(this->fullPath + dir->d_name, dir->d_name);
 			}
 			//printf("%s\n", dir->d_name);
 		}
@@ -115,7 +115,7 @@ WebNode* Folder::GetPage(const string& pageName) const
 		const size_t endInd = pageName.length() - slashInd;
 		string localName = string(pageName, 1, slashInd - 1);
 		const string remainingName = string(pageName, slashInd, endInd);
-		to_upper(localName);
+		Util::to_upper(localName);
 		auto potentialPage =  this->pages.find(localName);
 		if(potentialPage != this->pages.end())
 		{
@@ -136,7 +136,7 @@ WebNode* Folder::GetPage(const string& pageName) const
 		if(pageName[0] != '/')
 		{
 			string pageN = pageName;
-			to_upper(pageN);
+			Util::to_upper(pageN);
 			auto potentialPage =  this->pages.find(pageN);
 			if(potentialPage != this->pages.end())
 			{
@@ -148,7 +148,7 @@ WebNode* Folder::GetPage(const string& pageName) const
 		else
 		{
 			string pageN(pageName, 1, pageName.length() - 1);
-			to_upper(pageN);
+			Util::to_upper(pageN);
 			auto potentialPage =  this->pages.find(pageN);
 			if(potentialPage != this->pages.end())
 			{

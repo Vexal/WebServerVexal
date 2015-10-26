@@ -5,6 +5,7 @@
 
 #include "Server.h"
 #include "HttpServer/HttpServer.h"
+#include "HttpServer/HttpUtils.h"
 
 using namespace std;
 
@@ -161,14 +162,9 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 
 			try
 			{
-				const bool isHttpRequest = HttpServer::GetHttpRequestType(bufferRcv) != HttpRequestTypes::INVALID;
+				const bool handledHttpRequest = this->httpServer.HandleClientRequest(bufferRcv, clientSocket, clientAddressString);
 
-				if (isHttpRequest)
-				{
-					this->httpServer.HandleClientRequest(bufferRcv, clientSocket, clientAddressString);
-
-				}
-				else
+				if (!handledHttpRequest)
 				{
 					cout << "WARN:  Received unknown request type " << bufferRcv << endl;
 				}

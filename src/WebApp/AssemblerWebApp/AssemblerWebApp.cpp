@@ -6,6 +6,7 @@
 #include "../../Assembler/Simulator.h"
 #include "../../Page/Folder.h"
 #include "../../Page/Page.h"
+#include "../../HttpServer/HttpUtils.h"
 
 using namespace std;
 using namespace CS350;
@@ -81,7 +82,7 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 		}
 		else
 		{
-			code = HttpServer::cleanAssemblyString(code);
+			code = HttpUtils::urlDecode(code);
 		}
 
 		Assembler ourAssembler(code, endianType, useHProtection, createStack);
