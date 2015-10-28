@@ -1,6 +1,5 @@
 #include <iostream>
 #include "AssemblerWebApp.h"
-#include "../WebPageApp/WebPageApp.h"
 #include "../../HttpServer/HttpServer.h"
 #include "../../Assembler/Assembler.h"
 #include "../../Assembler/Simulator.h"
@@ -8,6 +7,7 @@
 #include "../../Page/Page.h"
 #include "../../HttpServer/HttpUtils.h"
 #include "../../HttpServer/HttpRequest.h"
+#include "../../Page/PageConstructor.h"
 
 using namespace std;
 using namespace CS350;
@@ -155,7 +155,7 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 	}
 
 	const Page* const newPage = assemblerPage->ClonePage(replaceTokens, replaceTexts);
-	const Page* const constructedPage = WebPageApp::ConstructPage(newPage, rootDirectory);
+	const Page* const constructedPage = PageConstructor::ConstructPage(newPage, rootDirectory);
 
 	delete newPage;
 

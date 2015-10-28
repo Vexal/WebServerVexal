@@ -171,7 +171,11 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 			}
 			catch (const std::out_of_range& e)
 			{
-				cout << "Exception caught: Invalid request: " << bufferRcv << endl;
+				cout << "Exception caught: Invalid request: Out of Range" << bufferRcv << endl;
+			}
+			catch (const std::length_error& e)
+			{
+				cout << "Exception caught: Invalid request: Length Error" << bufferRcv << endl;
 			}
 		}
 		else

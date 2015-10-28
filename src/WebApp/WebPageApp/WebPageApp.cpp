@@ -6,6 +6,7 @@
 #include "../../Page/Page.h"
 #include "../../HttpServer/HttpServer.h"
 #include "../../HttpServer/HttpRequest.h"
+#include "../../Page/PageConstructor.h"
 
 using namespace std;
 
@@ -46,7 +47,7 @@ void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpReque
 	{
 		if (page->GetPageType() == PageType::HTML)
 		{
-			const Page* const constructedPage = this->ConstructPage(page, dir);
+			const Page* const constructedPage = PageConstructor::ConstructPage(page, dir);
 			this->server->SendPage(constructedPage, clientSocket);
 
 			delete constructedPage;
@@ -60,40 +61,4 @@ void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpReque
 	{
 		this->server->SendPage(dir->GetError404Page(), clientSocket, 404);
 	}
-}
-
-Page const* WebPageApp::ConstructPage(const Page* const page, const Folder* const dir)
-{
-	string pageContent(page->GetContent());
-	
-	auto dollarSignPosition = pageContent.find('$', 0);
-
-	while (dollarSignPosition != string::npos)
-	{
-		const auto foundPosition = dollarSignPosition;
-		const auto delimeterPosition = pageContent.find("=", dollarSignPosition + 1);
-		const string operation = pageContent.substr(dollarSignPosition + 2, delimeterPosition - dollarSignPosition - 2);
-		const auto eraseEnd = pageContent.find("}", foundPosition);
-		const auto quotePosition = pageContent.find("\"", delimeterPosition + 2);
-		const string operationTarget = pageContent.substr(delimeterPosition + 2, quotePosition - delimeterPosition - 2);
-
-		if (operation == "LOAD")
-		{
-			const string data = static_cast<Page*>(dir->GetPage(operationTarget))->GetContent();
-			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, data);
-		}
-		else if (operation == "THIS")
-		{
-			string pa = page->GetFullPath();
-			transform(pa.begin(), pa.end(), pa.begin(), ::tolower);
-			const auto vc = WebPageApp::viewCounts.find(pa);
-			const int viewCount = vc != WebPageApp::viewCounts.end() ? vc->second : 0;
-			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, to_string(viewCount));
-		}
-		
-		pageContent.erase(foundPosition, eraseEnd - foundPosition + 1);
-		dollarSignPosition = pageContent.find('$', delimeterPosition + 1);
-	}
-
-	return new const Page(page->GetFullPath(), page->GetName(), pageContent);
 }

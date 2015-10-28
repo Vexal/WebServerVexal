@@ -1,13 +1,13 @@
 #include <iostream>
 
 #include "AccountCreateApp.h"
-#include "../WebPageApp/WebPageApp.h"
 #include "../../HttpServer/HttpServer.h"
 #include "../../Page/Folder.h"
 #include "../../Page/Page.h"
 #include "../../DataAccess/MySql/DbUserDAO.h"
 #include "../../DataAccess/DataErrorException.h"
 #include "../../HttpServer/HttpRequest.h"
+#include "../../Page/PageConstructor.h"
 
 using namespace std;
 
@@ -67,7 +67,7 @@ void AccountCreateApp::HandleRequest(SOCKET clientSocket, const HttpRequest& htt
 		replaceTexts.push_back("Successfully created account " + accountName + "\n");
 		replaceTokens.push_back("Account: ");
 		const Page* const newPage = this->accountSuccessfulPage->ClonePage(replaceTokens, replaceTexts);
-		const Page* const constructedPage = WebPageApp::ConstructPage(newPage, rootDirectory);
+		const Page* const constructedPage = PageConstructor::ConstructPage(newPage, rootDirectory);
 		this->server->SendPage(constructedPage, clientSocket, 302, "/projects/mmorts/Account.html");
 	}
 	else
@@ -78,7 +78,7 @@ void AccountCreateApp::HandleRequest(SOCKET clientSocket, const HttpRequest& htt
 		replaceTokens.push_back("Create result: ");
 		replaceTexts.push_back(errorText);
 		const Page* const newPage = accountPage->ClonePage(replaceTokens, replaceTexts);
-		const Page* const constructedPage = WebPageApp::ConstructPage(newPage, rootDirectory);
+		const Page* const constructedPage = PageConstructor::ConstructPage(newPage, rootDirectory);
 		this->server->SendPage(constructedPage, clientSocket, 200);
 		delete constructedPage;
 
