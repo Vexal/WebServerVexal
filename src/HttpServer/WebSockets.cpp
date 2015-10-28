@@ -1,6 +1,6 @@
 #include <iostream>
 #include "HttpServer.h"
-#include "../Serial/SerialHandler.h"
+#include "../Serial/SerialController.h"
 #include "../trunk/src/hl_sha1wrapper.h"
 
 static const std::string base64_chars =
@@ -201,7 +201,7 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 		else if (decodedMessage == "initserial")
 		{
 			cout << "Initializing serial connection..";
-			if (Serial::InitializeSerialConnection())
+			if (this->serialController->InitializeSerialConnection())
 			{
 				cout << "..Successful" << endl;
 			}
@@ -216,7 +216,7 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 			char buf[3] = "on";
 
 			buf[2] = '\n';
-			if (Serial::WriteData(buf, 3))
+			if (this->serialController->WriteData(buf, 3))
 			{
 				cout << "..Successful" << endl;
 			}
@@ -231,7 +231,7 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 			char buf[4] = "off";
 
 			buf[3] = '\n';
-			if (Serial::WriteData(buf, 4))
+			if (this->serialController->WriteData(buf, 4))
 			{
 				cout << "..Successful" << endl;
 			}
@@ -250,7 +250,7 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 			cout << "Sending TURN LEFT motor command to serial...";
 			char buf[9] = "turnleft";
 			buf[8] = '\n';
-			if (Serial::WriteData(buf, 9))
+			if (this->serialController->WriteData(buf, 9))
 			{
 				cout << "..Successful" << endl;
 			}
@@ -264,7 +264,7 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 			cout << "Sending TURN RIGHT motor command to serial...";
 			char buf[10] = "turnright";
 			buf[9] = '\n';
-			if (Serial::WriteData(buf, 10))
+			if (this->serialController->WriteData(buf, 10))
 			{
 				cout << "..Successful" << endl;
 			}
@@ -278,7 +278,7 @@ void HttpServer::maintainWebSocketConnection(int clientSocket) const
 			cout << "Sending TOGGLE command to serial...";
 			char buf[7] = "toggle";
 			buf[6] = '\n';
-			if (Serial::WriteData(buf, 7))
+			if (this->serialController->WriteData(buf, 7))
 			{
 				cout << "..Successful" << endl;
 			}

@@ -4,7 +4,6 @@
 #include <string>
 #include <fstream>
 #include <atomic>
-#include "Serial/SerialHandler.h"
 #include "Server.h"
 using namespace std;
 
@@ -42,18 +41,6 @@ int main(int argc, char* argv[])
 		else if(input.compare("print") == 0)
 		{
 			printEverything = !printEverything;
-		}
-		else if (input.compare("initserial") == 0)
-		{
-			cout << "Initializing Arduino serial connection..";
-			if (Serial::InitializeSerialConnection())
-			{
-				cout << "..Successful" << endl;
-			}
-			else
-			{
-				cout << "..FAILED" << endl;
-			}
 		}
 	}
 

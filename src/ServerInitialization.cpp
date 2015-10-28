@@ -7,10 +7,9 @@ bool Server::initializeWSA()
 {
 #ifdef _WIN32
 	WSADATA wsaData;
-	int iResult;
 
 	// Initialize Winsock
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	const int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0)
 	{
 		std::cout << "WSA initialization failed: " << iResult << std::endl;
@@ -33,7 +32,7 @@ bool Server::initializeTCPSocket()
 	hints.ai_flags = AI_PASSIVE;
 
 	// Resolve the local address and port to be used by the server
-	auto iResult = getaddrinfo(NULL, this->port.c_str(), &hints, &result);
+	const auto iResult = getaddrinfo(NULL, this->port.c_str(), &hints, &result);
 	if (iResult != 0)
 	{
 		std::cout << "getaddrinfo failed: " << iResult << std::endl;
@@ -57,7 +56,7 @@ bool Server::initializeTCPSocket()
 
 	std::cout << "Socket creation successful." << std::endl;
 
-	auto iResult2 = bind(this->serverSocket, result->ai_addr, result->ai_addrlen);
+	const auto iResult2 = bind(this->serverSocket, result->ai_addr, result->ai_addrlen);
 
 	if (iResult2 == SOCKET_ERROR)
 	{
@@ -79,7 +78,7 @@ bool Server::initializeTCPSocket()
 
 bool Server::listenSocket()
 {
-	auto res = listen(this->serverSocket, SOMAXCONN);
+	const auto res = listen(this->serverSocket, SOMAXCONN);
 
 	//u_long iMode = 1;
 	//ioctlsocket(this->serverSocket, FIONBIO, &iMode);

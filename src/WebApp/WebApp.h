@@ -5,11 +5,11 @@
 #else
 #define SOCKET int
 #endif
+#include "../HttpServer/HttpRequest.h"
 
 
 class HttpServer;
 class Client;
-struct HttpRequest;
 
 class WebApp
 {
@@ -23,6 +23,4 @@ public:
 	virtual ~WebApp();
 
 	std::string GetName() const { return this->name; }
-
-	static std::string GetStringParameter(const std::string& input, const std::string& parameterName); // return first instance of param
 };

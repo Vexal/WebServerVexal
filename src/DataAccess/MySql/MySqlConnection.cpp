@@ -25,12 +25,10 @@ MySqlConnection::MySqlConnection(sql::Driver* const driver, const DbConfig& dbCo
 			throw "Unable to connect.";
 		}
 
-		cout << "Initializing database connection '" << this->dbConfig.dbAddress << "'..." << endl;
 		this->connection = this->driver->connect(this->dbConfig.dbAddress, this->dbConfig.dbUsername, this->dbConfig.dbPassword);
 
 		statement = this->connection->createStatement();
 		statement->execute("USE " + this->dbConfig.dbName);
-		cout << "Database connection established." << endl;
 		successful = true;
 	}
 	catch (...)
@@ -52,7 +50,6 @@ MySqlConnection::MySqlConnection(sql::Driver* const driver, const DbConfig& dbCo
 
 MySqlConnection::~MySqlConnection()
 {
-	cout << "freeing even though exception" << endl;
 	this->cleanUp();
 }
 

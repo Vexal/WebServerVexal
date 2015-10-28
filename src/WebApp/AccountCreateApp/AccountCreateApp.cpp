@@ -27,8 +27,8 @@ string CreateError(const string& message)
 
 void AccountCreateApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
-	const string accountName = GetStringParameter(httpRequest.request, "accountname");
-	const string password = GetStringParameter(httpRequest.request, "password");
+	const string accountName = httpRequest.GetParameter("accountname");
+	const string password = httpRequest.GetParameter("password");
 
 	string errorText = "";
 

@@ -29,6 +29,7 @@
 #include <mutex>
 #include <queue>
 #include <unordered_map>
+#include "HttpRequest.h"
 
 typedef void(*WebSocketCallback)();
 
@@ -36,16 +37,18 @@ class Page;
 class Folder;
 class ContentHost;
 class WebApp;
-struct HttpRequest;
+class SerialController;
 
 class HttpServer
 {
 private:
 	std::unordered_map<std::string, WebSocketCallback> webSocketMessageCallbacks;
 	std::unordered_map<std::string, WebApp*> webApps;
+	SerialController* const serialController;
 	mutable std::mutex logMutex;
 
 public:
+	HttpServer();
 	bool InitializeServer();
 	bool SendPage(const Page* const page, SOCKET clientSocket, int statusCode = 200, const std::string& redirectUrl = "") const;
 	~HttpServer();

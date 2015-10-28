@@ -6,9 +6,6 @@
 #include <ctime>
 #include <fstream>
 #include <sstream>
-#include "HttpServer.h"
-#include "HttpUtils.h"
-#include "HttpRequest.h"
 #include "../Util.h"
 #include "../Page/ContentHost.h"
 #include "../Page/Folder.h"
@@ -18,6 +15,10 @@
 #include "../WebApp/WebPageApp/WebPageApp.h"
 #include "../WebApp/AccountCreateApp/AccountCreateApp.h"
 #include "../WebApp/HomeAutomationWebApp/HomeAutomationWebApp.h"
+#include "../Serial/SerialController.h"
+#include "HttpServer.h"
+#include "HttpUtils.h"
+#include "HttpRequest.h"
 
 #ifdef _WIN32
 #pragma comment(lib, "Ws2_32.lib")
@@ -30,6 +31,12 @@ using namespace std;
 
 extern bool printEverything;
 extern bool printThreading;
+
+HttpServer::HttpServer() :
+	serialController(SerialController::Create())
+{
+
+}
 
 bool HttpServer::InitializeServer()
 {

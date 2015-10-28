@@ -2,9 +2,12 @@
 #include <mutex>
 #include <string>
 
+class SerialController;
+
 class HomeAutomationController
 {
 protected:
+	SerialController* const serialController;
 	std::mutex serialMutex;
 
 	HomeAutomationController();

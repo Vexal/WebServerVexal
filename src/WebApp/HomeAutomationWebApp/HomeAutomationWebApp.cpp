@@ -3,7 +3,7 @@
 #include "HomeAutomationWebApp.h"
 #include "../../DataAccess/MySql/DbUserDAO.h"
 #include "../../DataAccess/DataErrorException.h"
-#include "../../Serial/SerialHandler.h"
+#include "../../Serial/SerialController.h"
 #include "../../HttpServer/HttpServer.h"
 #include "../../HttpServer/HttpRequest.h"
 #include "../../Page/Folder.h"
@@ -25,22 +25,20 @@ HomeAutomationWebApp::HomeAutomationWebApp(HttpServer* server, const Folder* con
 
 void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
-	const string accountName = GetStringParameter(httpRequest.request, "accountname");
-	const string password = GetStringParameter(httpRequest.request, "password");
+	const string accountName = httpRequest.GetParameter("accountName");
+	const string password = httpRequest.GetParameter("password");
 
 	string errorText = "";
 
-	const string commandName = GetStringParameter(httpRequest.request, "submit");
+	const string commandName = httpRequest.GetParameter("submit");
 	cout << "Received command " << commandName << " from user " << accountName << endl;
 	if (accountName.empty())
 	{
-		cout << "..FAILED" << endl;
 		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 		return;
 	}
 	if (password.empty())
 	{
-		cout << "..FAILED" << endl;
 		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 		return;
 	}
