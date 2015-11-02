@@ -148,7 +148,7 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 	do
 	{
 		char bufferRcv[MAX_REQUEST_SIZE];
-		const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 1, 0);
+		const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 2, 0);
 		if (printEverything)
 			cout << "Accept successful from address: " << clientSocket << " with " << recvLen << " bytes." << endl;
 
@@ -157,7 +157,7 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 			bufferRcv[recvLen] = '\0';
 			if (printEverything)
 			{
-				cout << endl << endl << endl << bufferRcv << endl << endl << endl;
+				cout << bufferRcv << endl;
 			}
 
 			try

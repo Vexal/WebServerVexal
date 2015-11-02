@@ -66,8 +66,7 @@ namespace HttpUtils
 				while (colonIndex < headerFields[i].length() && (headerFields[i][colonIndex] == ':' || headerFields[i][colonIndex] == ' '))
 					++colonIndex;
 
-				string fieldValue = Util::safe_substr(headerFields[i], colonIndex);
-				results[fieldName] = fieldValue;
+				results[fieldName] = Util::safe_substr(headerFields[i], colonIndex);
 			}
 		}
 
