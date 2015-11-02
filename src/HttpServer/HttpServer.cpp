@@ -50,9 +50,9 @@ bool HttpServer::InitializeServer()
 bool HttpServer::initializeWebContent(const string& rootDirectory)
 {
 	this->webApps["web"] = new WebPageApp(this);
-	this->webApps["/vim"] = new VimWebApp(this);
+	//this->webApps["/vim"] = new VimWebApp(this);
 	this->webApps["/compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
-	this->webApps["/createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
+	//this->webApps["/createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	this->webApps["/homeautomation"] = new HomeAutomationWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;
 }
@@ -86,7 +86,7 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 	const string requestUri = Util::get_with_default<string, string>(headers, HttpUtils::REQUEST_URI_FIELD, "");
 	//split uri into target and parameters
 	const vector<string> uriComponents = Util::split(requestUri, "?");
-	if (uriComponents.size < 1)
+	if (uriComponents.size() < 1)
 	{
 		cout << "ERROR: empty uri components " << requestUri << endl;
 		return false;
