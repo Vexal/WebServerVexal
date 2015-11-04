@@ -25,7 +25,7 @@ HomeAutomationWebApp::HomeAutomationWebApp(HttpServer* server, const Folder* con
 
 void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
-	const string accountName = httpRequest.GetParameter("accountName");
+	const string accountName = httpRequest.GetParameter("accountname");
 	const string password = httpRequest.GetParameter("password");
 
 	string errorText = "";
