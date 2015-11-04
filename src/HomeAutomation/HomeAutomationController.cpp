@@ -35,6 +35,6 @@ int HomeAutomationController::ActivateGarage(string& resultStatus)
 
 HomeAutomationController* HomeAutomationController::Create()
 {
-	static HomeAutomationController* const singletonController = new HomeAutomationController();
-	return singletonController;
+	static HomeAutomationController singletonController;
+	return &singletonController;
 }

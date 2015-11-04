@@ -15,6 +15,8 @@ private:
 	//Keep track of last error
 	DWORD errors;
 	LPCSTR portName = "COM3";
+#else
+	int USB;
 #endif
 	bool connected;
 	std::mutex serialMutex;

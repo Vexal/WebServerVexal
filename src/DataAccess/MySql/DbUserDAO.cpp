@@ -125,6 +125,6 @@ DbUserDAO::~DbUserDAO()
 
 DbUserDAO* DbUserDAO::Create()
 {
-	static DbUserDAO singletonDAO = DbUserDAO();
+	static DbUserDAO singletonDAO;
 	return &singletonDAO;
 }
