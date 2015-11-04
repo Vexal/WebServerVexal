@@ -33,7 +33,7 @@ MySqlConnection::MySqlConnection(sql::Driver* const driver, const DbConfig& dbCo
 	}
 	catch (...)
 	{
-		cout << "ERROR: Unable to establish database connection." << endl;
+
 	}
 
 	if (statement != nullptr)

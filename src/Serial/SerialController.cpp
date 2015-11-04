@@ -14,8 +14,8 @@ SerialController::SerialController()
 
 SerialController* SerialController::Create()
 {
-	static SerialController* const singletonController = new SerialController();
-	return singletonController;
+	static SerialController singletonController;
+	return &singletonController;
 }
 
 bool SerialController::InitializeSerialConnection()

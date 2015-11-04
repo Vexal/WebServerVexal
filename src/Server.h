@@ -31,6 +31,7 @@
 #endif
 
 #include "HttpServer/HttpServer.h"
+#include "Logger/Logger.h"
 
 struct WorkerData
 {
@@ -47,6 +48,7 @@ class Server
 	std::map<std::string, std::string> hostNames;
 	mutable std::mutex workQueueMutex;
 	std::queue<WorkerData> workerDataQueue;
+	static Logger log;
 
 public:
 	Server(const std::string& config = "config.txt");

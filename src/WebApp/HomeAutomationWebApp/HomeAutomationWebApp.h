@@ -1,5 +1,6 @@
 #pragma once
 #include "../WebApp.h"
+#include "../../Logger/Logger.h"
 
 class Folder;
 class Page;
@@ -14,6 +15,7 @@ private:
 	const Page* const authenticationResponsePage;
 	UserDAO* const userDAO;
 	HomeAutomationController* const controller;
+	Logger log = Logger("HomeAutomationWebApp");
 
 public:
 	HomeAutomationWebApp(HttpServer* server, const Folder* const rootDirectory);

@@ -31,6 +31,7 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 	string errorText = "";
 
 	const string commandName = httpRequest.GetParameter("submit");
+	log.info("Received command " + commandName + " from user " + accountName);
 	cout << "Received command " << commandName << " from user " << accountName << endl;
 	if (accountName.empty())
 	{
@@ -51,16 +52,16 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 	}
 	catch (const DataErrorException& e)
 	{
-		cout << "data error: " << e.error << endl;
+		this->log.error("Data error: " + e.error);
 	}
 	catch (const InvalidCredentialsException& e)
 	{
-		cout << "Invalid Credentials" << endl;
+		this->log.error("Invalid credentials from user " + accountName);
 	}
 
 	if (accessTypes.find("garage") == accessTypes.end())
 	{
-		cout << "..FAILED AUTHENTICATION NO GARAGE ACCESS" << endl;
+		this->log.error("Illegal garage access attempt from user " + accountName);
 		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 		return;
 	}
@@ -70,12 +71,12 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 
 	if (resultErrorCode == 0)
 	{
-		cout << "..Successful" << endl;
+		this->log.info("Controller successfully activated garage by user " + accountName);
 		this->server->SendPage(this->garagePage, clientSocket, 302, "/projects/Garage/GarageControlPage.html");
 	}
 	else
 	{
-		cout << "..FAILED" << endl;
+		this->log.error("Controller failed to activate garage by user " + accountName);
 		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 	}
 

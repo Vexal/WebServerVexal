@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "WebNode.h"
+#include "../Logger/Logger.h"
 
 struct PageCompare
 {
@@ -18,6 +19,7 @@ private:
 	std::map<std::string, WebNode*, PageCompare> pages;
 	Page* defaultPage = nullptr;
 	Page* error404Page = nullptr;
+	static Logger log;
 
 public:
 	Folder(const std::string& fullPath, const std::string& name);

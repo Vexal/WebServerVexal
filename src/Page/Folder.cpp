@@ -15,6 +15,8 @@
 using namespace std;
 extern bool printEverything;
 
+Logger Folder::log = Logger("Folder");
+
 Folder::Folder(const string& fullPath, const string& name) :
 	WebNode(fullPath, name, FOLDER)
 {
@@ -129,7 +131,7 @@ WebNode* Folder::GetPage(const string& pageName) const
 			}
 		}
 		
-		cout << "Error:  " << pageName << " not found in directory " << this->fullPath << endl;		
+		log.error(pageName + " not found in directory " + this->fullPath);	
 	}
 	else
 	{
@@ -140,8 +142,6 @@ WebNode* Folder::GetPage(const string& pageName) const
 			auto potentialPage =  this->pages.find(pageN);
 			if(potentialPage != this->pages.end())
 			{
-				if(printEverything)
-					cout << "Successfully accessed " << pageName << " in directory " << this->fullPath << endl;
 				return potentialPage->second;
 			}
 		}
@@ -152,14 +152,11 @@ WebNode* Folder::GetPage(const string& pageName) const
 			auto potentialPage =  this->pages.find(pageN);
 			if(potentialPage != this->pages.end())
 			{
-				if(printEverything)
-					cout << "Successfully accessed " << pageName << " in directory " << this->fullPath << endl;
-
 				return potentialPage->second;
 			}
 		}
 
-		cout << "Error:  " << pageName << " not found in directory " << this->fullPath << endl;
+		log.error(pageName + " not found in directory " + this->fullPath);
 	}
 	
 	return nullptr;

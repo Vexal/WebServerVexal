@@ -79,7 +79,7 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 	const string requestMethod = Util::get_with_default<string, string>(headers, HttpUtils::REQUEST_METHOD_FIELD, "");
 	if (requestMethod != "GET" && requestMethod != "POST")
 	{
-		cout << "ERROR: Strange request method " << requestMethod << endl;
+		this->log.error("Strange request method: " + requestMethod);
 		return false;
 	}
 
@@ -88,7 +88,7 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 	const vector<string> uriComponents = Util::split(requestUri, "?");
 	if (uriComponents.size() < 1)
 	{
-		cout << "ERROR: empty uri components " << requestUri << endl;
+		this->log.error("Empty uri components " + requestUri);
 		return false;
 	}
 

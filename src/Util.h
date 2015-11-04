@@ -24,4 +24,6 @@ namespace Util
 
 		return it->second;
 	}
+
+	std::string CurrentDateTime();
 }

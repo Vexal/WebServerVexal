@@ -1,4 +1,5 @@
 #include "Util.h"
+#include <time.h>
 
 using namespace std;
 
@@ -72,5 +73,21 @@ namespace Util
 		}
 
 		return input.substr(pos, len);
+	}
+
+	//copied from stack overflow; have yet to read the code inside this function. seems to work anyway.
+	string CurrentDateTime() 
+	{
+		time_t     now = time(0);
+		struct tm  tstruct;
+		char       buf[80];
+#ifdef _WIN32
+		localtime_s(&tstruct, &now);
+#else
+		localtime_r(&now, &tstruct);
+#endif
+		strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+
+		return buf;
 	}
 }

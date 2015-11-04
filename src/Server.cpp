@@ -15,6 +15,8 @@ extern bool printThreading;
 atomic_int threadCount;
 atomic_int maxThreadCount;
 
+Logger Server::log = Logger("Server");
+
 Server::Server(const string& config)
 {
 	ifstream configFile("config.txt");
@@ -149,12 +151,12 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 	{
 		char bufferRcv[MAX_REQUEST_SIZE];
 		const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 2, 0);
-		if (printEverything)
-			cout << "Accept successful from address: " << clientSocket << " with " << recvLen << " bytes." << endl;
+		log.info("Accept successful from socket " + to_string(clientSocket) + " with " + to_string(recvLen) + " bytes.");
 
 		if (recvLen > 0)
 		{
 			bufferRcv[recvLen] = '\0';
+			log.info(bufferRcv);
 			if (printEverything)
 			{
 				cout << bufferRcv << endl;
@@ -166,16 +168,16 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 
 				if (!handledHttpRequest)
 				{
-					cout << "WARN:  Received unknown request type " << bufferRcv << endl;
+					log.error("Failed to handle request: " + string(bufferRcv));
 				}
 			}
 			catch (const std::out_of_range& e)
 			{
-				cout << "Exception caught: Invalid request: Out of Range" << bufferRcv << endl;
+				log.error("Exception caught: Invalid request: Out of range exception " + string(bufferRcv));
 			}
 			catch (const std::length_error& e)
 			{
-				cout << "Exception caught: Invalid request: Length Error" << bufferRcv << endl;
+				log.error("Exception caught: Invalid request: length error exception " + string(bufferRcv));
 			}
 		}
 		else

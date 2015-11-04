@@ -30,6 +30,7 @@
 #include <queue>
 #include <unordered_map>
 #include "HttpRequest.h"
+#include "../Logger/Logger.h"
 
 typedef void(*WebSocketCallback)();
 
@@ -46,6 +47,7 @@ private:
 	std::unordered_map<std::string, WebApp*> webApps;
 	SerialController* const serialController;
 	mutable std::mutex logMutex;
+	mutable Logger log = Logger("HttpServer");
 
 public:
 	HttpServer();
