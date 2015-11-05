@@ -19,36 +19,8 @@ Logger Server::log = Logger("Server");
 
 Server::Server(const string& config)
 {
-	ifstream configFile("config.txt");
 	maxThreadCount.store(8);
-	if (configFile.is_open())
-	{
-		configFile >> this->port;
-		cout << "Loaded from config file port: " << this->port.c_str() << " (len " << strlen(this->port.c_str()) << ")" << endl;
-
-		int parseState = 0;
-		string nextRoot;
-		while (configFile.good())
-		{
-			string nextElement;
-			configFile >> nextElement;
-			if (nextElement == "root:")
-			{
-				parseState = 1;
-			}
-			else if (parseState == 1)
-			{
-				nextRoot = nextElement;
-				parseState = 2;
-			}
-			else if (parseState == 2)
-			{
-				this->hostNames[nextElement] = nextRoot;
-			}
-		}
-
-		configFile.close();
-	}
+	this->loadConfig(config);
 }
 
 bool Server::InitializeServer()
@@ -58,7 +30,7 @@ bool Server::InitializeServer()
 	this->initializeTCPSocket();
 	cout << "Listening Server Socket..." << endl;
 	this->listenSocket();
-	cout << "initailizing http server..." << endl;
+	cout << "Initializing http server..." << endl;
 	this->httpServer.InitializeServer();
 	cout << "Initializing " << maxThreadCount << " worker threads..." << endl;
 	this->initializeWorkerThreads();
@@ -109,6 +81,7 @@ bool Server::checkForNewConnection()
 	this->workQueueMutex.lock();
 	this->workerDataQueue.push({ clientSocket, clientAddressString, false });
 	this->workQueueMutex.unlock();
+	this->workQueueCondition.notify_all();
 
 	return true;
 }
@@ -117,30 +90,19 @@ void Server::workerThreadHandler(Server* server)
 {
 	while (true)
 	{
-		server->workQueueMutex.lock();
-		if (!server->workerDataQueue.empty())
-		{
-			const WorkerData clientData = server->workerDataQueue.front();
-			server->workerDataQueue.pop();
-			server->workQueueMutex.unlock();
+		unique_lock<mutex> workLock(server->workQueueMutex);
+		server->workQueueCondition.wait(workLock, [server]() {return !server->workerDataQueue.empty();});
 
-			++threadCount; //for debugging, inconsequential.
-			if (printThreading)
-				cout << "Thread count: " << threadCount << endl;
+		const WorkerData clientData = server->workerDataQueue.front();
+		server->workerDataQueue.pop();
+		workLock.unlock();
 
-			server->receiveThenHandleClientRequest(clientData.clientSocket, clientData.clientAddressString, clientData.keepAlive);
-			--threadCount;
-		}
-		else
-		{
-			server->workQueueMutex.unlock();
-#ifdef _WIN32
-			Sleep(4);
-#else //linux
-			timespec t = { 0, 16000000 };
-			nanosleep(&t, nullptr);
-#endif
-		}
+		++threadCount; //for debugging, inconsequential.
+		if (printThreading)
+			cout << "Thread count: " << threadCount << endl;
+
+		server->receiveThenHandleClientRequest(clientData.clientSocket, clientData.clientAddressString, clientData.keepAlive);
+		--threadCount;
 	}
 }
 

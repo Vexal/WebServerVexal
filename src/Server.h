@@ -48,6 +48,7 @@ class Server
 	std::map<std::string, std::string> hostNames;
 	mutable std::mutex workQueueMutex;
 	std::queue<WorkerData> workerDataQueue;
+	std::condition_variable workQueueCondition;
 	static Logger log;
 
 public:
@@ -64,7 +65,7 @@ private:
 
 	bool checkForNewConnection();
 	void receiveThenHandleClientRequest(SOCKET clientSocket, const std::string& clientAddressString, bool keepAlive) const;
-
+	void loadConfig(const std::string& config);
 private:
 	static void workerThreadHandler(Server* server);
 };

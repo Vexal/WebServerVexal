@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 #include "Server.h"
 #include "Page/ContentHost.h"
 
@@ -105,4 +106,39 @@ void closesocket2(SOCKET socket)
 #else
 	close(socket);
 #endif
+}
+
+using namespace std;
+
+void Server::loadConfig(const string& config)
+{
+	ifstream configFile("config.txt");
+	if (configFile.is_open())
+	{
+		configFile >> this->port;
+		cout << "Loaded from config file port: " << this->port.c_str() << " (len " << strlen(this->port.c_str()) << ")" << endl;
+
+		int parseState = 0;
+		string nextRoot;
+		while (configFile.good())
+		{
+			string nextElement;
+			configFile >> nextElement;
+			if (nextElement == "root:")
+			{
+				parseState = 1;
+			}
+			else if (parseState == 1)
+			{
+				nextRoot = nextElement;
+				parseState = 2;
+			}
+			else if (parseState == 2)
+			{
+				this->hostNames[nextElement] = nextRoot;
+			}
+		}
+
+		configFile.close();
+	}
 }
