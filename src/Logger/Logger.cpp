@@ -27,16 +27,16 @@ void Logger::info(const string& logEntry)
 {
 	Logger::logQueueMutex.lock();
 	Logger::logTaskQueue.push({ LOG_INFO, "[" + this->name + "] " + logEntry });
-	Logger::logConditionVariable.notify_all();
 	Logger::logQueueMutex.unlock();
+	Logger::logConditionVariable.notify_all();
 }
 
 void Logger::error(const string& logEntry)
 {
 	Logger::logQueueMutex.lock();
 	Logger::logTaskQueue.push({ LOG_ERROR, "[" + this->name + "] " + logEntry });
-	Logger::logConditionVariable.notify_all();
 	Logger::logQueueMutex.unlock();
+	Logger::logConditionVariable.notify_all();
 }
 
 void Logger::logThreadFunction()
