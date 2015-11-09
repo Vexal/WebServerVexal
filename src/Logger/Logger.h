@@ -10,13 +10,15 @@ private:
 	enum LogType
 	{
 		LOG_ERROR,
-		LOG_INFO
+		LOG_INFO,
+		LOG_APPEND //append requires file name
 	};
 
 	struct LogTask
 	{
 		const LogType logType;
 		const std::string logEntry;
+		const std::string fileName;
 	};
 
 	static std::mutex logQueueMutex;
@@ -29,6 +31,7 @@ public:
 	
 	void info(const std::string& logEntry);
 	void error(const std::string& logEntry);
+	void append(const std::string& file, const std::string& logEntry);
 
 private:
 	static void logThreadFunction();

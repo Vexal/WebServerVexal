@@ -112,7 +112,7 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 		this->webApps.at("web")->HandleRequest(clientSocket, httpRequest);
 	}
 
-	this->writeClientLog(httpRequest);
+	this->writeClientLogEntry(httpRequest);
 	return true;
 }
 
@@ -202,34 +202,26 @@ HttpServer::~HttpServer()
 #endif
 }
 
-void HttpServer::writeClientLog(const HttpRequest& clientRequest) const
+void HttpServer::writeClientLogEntry(const HttpRequest& clientRequest) const
 {
-	logMutex.lock();
-
-	ofstream logFile;
-	logFile.open("Connection Logs/" + clientRequest.clientAddressString + ".slog", ios_base::app);
-	if (logFile.is_open())
+	const string fileName = "Connection Logs/" + clientRequest.clientAddressString + ".slog";
+	string logEntry;
+	logEntry.reserve(1000);
+	logEntry += "*BEG*\n";
+	logEntry += "T: "; logEntry += Util::CurrentDateTime(); logEntry += "\n";
+	if (!clientRequest.referDomain.empty())
 	{
-		const time_t now = time(0);
-		const tm* const localtm = localtime(&now);
-
-		logFile << "*BEG*" << endl;
-		logFile << "T: " << asctime(localtm);
-		if (!clientRequest.referDomain.empty())
-		{
-			logFile << "Refer Domain: " << clientRequest.referDomain << endl;
-		}
-		if (!clientRequest.requestTarget.empty())
-		{
-			logFile << "Request Target: " << clientRequest.requestTarget << endl;
-		}
-		for (const auto& pair : clientRequest.headers)
-		{
-			logFile << (pair.first + ": ") << pair.second << endl;
-		}
-		logFile << "*END*" << endl << endl;
-		logFile.close();
+		logEntry += "Refer Domain: "; logEntry += clientRequest.referDomain; logEntry += "\n";
+	}
+	if (!clientRequest.requestTarget.empty())
+	{
+		logEntry += "Request Target: "; logEntry += clientRequest.requestTarget; logEntry += "\n";
+	}
+	for (const auto& pair : clientRequest.headers)
+	{
+		logEntry += pair.first; logEntry += ": "; logEntry += pair.second; logEntry += "\n";
 	}
 
-	logMutex.unlock();
+	logEntry += "*END*\n";
+	this->log.append(fileName, logEntry);
 }

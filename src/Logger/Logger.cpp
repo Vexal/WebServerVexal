@@ -39,6 +39,14 @@ void Logger::error(const string& logEntry)
 	Logger::logConditionVariable.notify_all();
 }
 
+void Logger::append(const string& file, const string& logEntry)
+{
+	Logger::logQueueMutex.lock();
+	Logger::logTaskQueue.push({ LOG_APPEND, logEntry, file });
+	Logger::logQueueMutex.unlock();
+	Logger::logConditionVariable.notify_all();
+}
+
 void Logger::logThreadFunction()
 {
 	//TODO: learn if it's okay to leave files open or if they should be closed after every write
@@ -67,6 +75,14 @@ void Logger::logThreadFunction()
 			break;
 		case LOG_ERROR:
 			errorLog << Util::CurrentDateTime() << " ERROR: " << logTask.logEntry << endl;
+			break;
+		case LOG_APPEND:
+		{
+			ofstream logFile;
+			logFile.open(logTask.fileName, ios_base::app);
+			logFile << logTask.logEntry << endl;
+			logFile.close();
+		}
 			break;
 		}
 	}

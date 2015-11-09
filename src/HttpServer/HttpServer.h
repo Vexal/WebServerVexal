@@ -46,7 +46,6 @@ private:
 	std::unordered_map<std::string, WebSocketCallback> webSocketMessageCallbacks;
 	std::unordered_map<std::string, WebApp*> webApps;
 	SerialController* const serialController;
-	mutable std::mutex logMutex;
 	mutable Logger log = Logger("HttpServer");
 
 public:
@@ -63,5 +62,5 @@ private:
 	void maintainWebSocketConnection(int clientSocket) const;
 	void sendWebSocketMessageShort(int clientSocket, const std::string& message) const;
 	bool initializeWebContent(const std::string& rootDirectory);
-	void writeClientLog(const HttpRequest& request) const;
+	void writeClientLogEntry(const HttpRequest& request) const;
 };
