@@ -9,6 +9,7 @@
 
 using namespace std;
 
+extern bool printEverything;
 mutex Logger::logQueueMutex;
 queue<Logger::LogTask> Logger::logTaskQueue; //queue log entries to a separate thread
 condition_variable Logger::logConditionVariable;
@@ -74,7 +75,13 @@ void Logger::logThreadFunction()
 			infoLog << Util::CurrentDateTime() << " INFO: " << logTask.logEntry << endl;
 			break;
 		case LOG_ERROR:
-			errorLog << Util::CurrentDateTime() << " ERROR: " << logTask.logEntry << endl;
+		{
+			const string errorEntry = Util::CurrentDateTime() + " ERROR: " + logTask.logEntry;
+			if (printEverything)
+				cout << errorEntry << endl;
+
+			errorLog << errorEntry << endl;
+		}
 			break;
 		case LOG_APPEND:
 		{

@@ -66,6 +66,13 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 {
 	//split into headers and body
 	const vector<string> requestComponents = Util::split(request, "\r\n\r\n");
+
+	if (requestComponents.empty())
+	{
+		this->log.error("Received empty request from socket " + to_string(clientSocket) + " from ip " + clientAddressString);
+		return false;
+	}
+
 	const unordered_map<string, string> headers = HttpUtils::GetHttpHeaders(requestComponents[0] + "\r\n");
 
 	if (Util::get_with_default<string, string>(headers, "connection", "") == "Upgrade")
@@ -79,16 +86,16 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 	const string requestMethod = Util::get_with_default<string, string>(headers, HttpUtils::REQUEST_METHOD_FIELD, "");
 	if (requestMethod != "GET" && requestMethod != "POST")
 	{
-		this->log.error("Strange request method: " + requestMethod);
+		this->log.error("Strange request method: " + requestMethod + " from ip " + clientAddressString);
 		return false;
 	}
 
 	const string requestUri = Util::get_with_default<string, string>(headers, HttpUtils::REQUEST_URI_FIELD, "");
 	//split uri into target and parameters
 	const vector<string> uriComponents = Util::split(requestUri, "?");
-	if (uriComponents.size() < 1)
+	if (uriComponents.empty())
 	{
-		this->log.error("Empty uri components " + requestUri);
+		this->log.error("Empty uri components " + requestUri + " from ip " + clientAddressString);
 		return false;
 	}
 

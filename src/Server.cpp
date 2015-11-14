@@ -113,7 +113,7 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 	{
 		char bufferRcv[MAX_REQUEST_SIZE];
 		const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 2, 0);
-		log.info("Accept successful from socket " + to_string(clientSocket) + " with " + to_string(recvLen) + " bytes.");
+		log.info("Accept successful from socket " + to_string(clientSocket) + " with " + to_string(recvLen) + " bytes from ip " + clientAddressString);
 
 		if (recvLen > 0)
 		{
@@ -121,7 +121,7 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 			log.info(bufferRcv);
 			if (printEverything)
 			{
-				cout << bufferRcv << endl;
+				cout << "[Received from " << clientAddressString << "]:\n" << bufferRcv << endl;
 			}
 
 			try
@@ -130,16 +130,16 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 
 				if (!handledHttpRequest)
 				{
-					log.error("Failed to handle request: " + string(bufferRcv));
+					log.error("Failed to handle request: " + string(bufferRcv) + " from " + clientAddressString);
 				}
 			}
 			catch (const std::out_of_range& e)
 			{
-				log.error("Exception caught: Invalid request: Out of range exception " + string(bufferRcv));
+				log.error("Exception caught: Invalid request: Out of range exception " + string(bufferRcv) + " from " + clientAddressString);
 			}
 			catch (const std::length_error& e)
 			{
-				log.error("Exception caught: Invalid request: length error exception " + string(bufferRcv));
+				log.error("Exception caught: Invalid request: length error exception " + string(bufferRcv) + " from " + clientAddressString);
 			}
 		}
 		else
