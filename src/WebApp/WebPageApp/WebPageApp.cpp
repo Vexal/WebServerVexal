@@ -7,13 +7,15 @@
 #include "../../HttpServer/HttpServer.h"
 #include "../../HttpServer/HttpRequest.h"
 #include "../../Page/PageConstructor.h"
+#include "../../DataAccess/Null/NullCommentsDAO.h"
 
 using namespace std;
 
 map<string, int> WebPageApp::viewCounts;
 
 WebPageApp::WebPageApp(HttpServer* server) :
-	WebApp("web", server)
+	WebApp("web", server),
+	commentsDAO(NullCommentsDAO::Create())
 {
 	ifstream inputFile("viewcounts.txt");
 	
@@ -47,7 +49,9 @@ void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpReque
 	{
 		if (page->GetPageType() == PageType::HTML)
 		{
-			const Page* const constructedPage = PageConstructor::ConstructPage(page, dir);
+			unordered_map<string, string> params;
+			params["comments"] = this->commentsDAO->GetThread(5).GenerateFullHtml();
+			const Page* const constructedPage = PageConstructor::ConstructPage(page, dir, params);
 			this->server->SendPage(constructedPage, clientSocket);
 
 			delete constructedPage;

@@ -57,6 +57,8 @@ string Assembler::createAssembledLine(const Instruction& instruction)
 	return string(outputs);
 }
 
+#define MAX_LINES 1000
+
 Instruction Assembler::parseLine(const string& line, int currentLine)
 {
 	Instruction parsedInstruction;
@@ -427,7 +429,7 @@ string Assembler::Assemble()
 
 	stringstream inp(this->assemblyCode);
 
-	while (!inp.eof())
+	while (!inp.eof() && outputLines.size() < MAX_LINES)
 	{
 		string nextLine;
 		getline(inp, nextLine);
@@ -446,7 +448,7 @@ string Assembler::Assemble()
 		}
 		else if (nextInstruction.invalid && nextInstruction.skipAmount != 0)
 		{
-			for (int a = 0; a < nextInstruction.skipAmount; ++a)
+			for (int a = 0; a < nextInstruction.skipAmount && outputLines.size() < MAX_LINES; ++a)
 			{
 				outputLines.push_back("0000");
 				this->dataType.push_back(DATA);

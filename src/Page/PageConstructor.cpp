@@ -6,38 +6,68 @@
 #include "Folder.h"
 using namespace std;
 
-Page const* PageConstructor::ConstructPage(const Page* const page, const Folder* const dir)
+Page const* PageConstructor::ConstructPage(const Page* const page, const Folder* const dir, const unordered_map<string, string> params)
 {
-	string pageContent(page->GetContent());
+	const char* const pageContent = page->GetContent();
+	string finalPage;
+	finalPage.reserve(page->GetContentLength());
 
-	auto dollarSignPosition = pageContent.find('$', 0);
-
-	while (dollarSignPosition != string::npos)
+	for (int currentPosition = 0; currentPosition < page->GetContentLength(); ++currentPosition)
 	{
-		const auto foundPosition = dollarSignPosition;
-		const auto delimeterPosition = pageContent.find("=", dollarSignPosition + 1);
-		const string operation = pageContent.substr(dollarSignPosition + 2, delimeterPosition - dollarSignPosition - 2);
-		const auto eraseEnd = pageContent.find("}", foundPosition);
-		const auto quotePosition = pageContent.find("\"", delimeterPosition + 2);
-		const string operationTarget = pageContent.substr(delimeterPosition + 2, quotePosition - delimeterPosition - 2);
-
-		if (operation == "LOAD")
+		if (pageContent[currentPosition] != '$')
 		{
-			const string data = static_cast<Page*>(dir->GetPage(operationTarget))->GetContent();
-			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, data);
+			finalPage += pageContent[currentPosition];
 		}
-		else if (operation == "THIS")
+		else
 		{
-			string pa = page->GetFullPath();
-			transform(pa.begin(), pa.end(), pa.begin(), ::tolower);
-			const auto vc = WebPageApp::viewCounts.find(pa);
-			const int viewCount = vc != WebPageApp::viewCounts.end() ? vc->second : 0;
-			pageContent.insert(foundPosition + eraseEnd - foundPosition + 1, to_string(viewCount));
-		}
+			currentPosition += 2; //skip $ and {
+			string operation;
+			while (pageContent[currentPosition] != '=')
+			{
+				operation += pageContent[currentPosition];
+				++currentPosition;
+			}
 
-		pageContent.erase(foundPosition, eraseEnd - foundPosition + 1);
-		dollarSignPosition = pageContent.find('$', delimeterPosition + 1);
+			currentPosition += 2; //skip " and =
+
+			string operationTarget;
+			while (pageContent[currentPosition] != '\"')
+			{
+				operationTarget += pageContent[currentPosition];
+				++currentPosition;
+			}
+
+			if (operation == "LOAD")
+			{
+				const Page* const constructedChild = ConstructPage(static_cast<Page*>(dir->GetPage(operationTarget)), dir, params);
+				finalPage += string(constructedChild->GetContent()); // is it okay to do this recursively.
+				delete constructedChild;
+			}
+			else if (operation == "THIS")
+			{
+				string pa = page->GetFullPath();
+				transform(pa.begin(), pa.end(), pa.begin(), ::tolower);
+				const auto vc = WebPageApp::viewCounts.find(pa);
+				const int viewCount = vc != WebPageApp::viewCounts.end() ? vc->second : 0;
+				finalPage += to_string(viewCount);
+			}
+			else if (operation == "PARAM")
+			{
+				const auto param = params.find(operationTarget);
+				if (param != params.end())
+				{
+					finalPage += param->second;
+				}
+				else
+				{
+					finalPage += "{ERROR}";
+				}
+			}
+
+			currentPosition += 2; //skip " and }
+		}
 	}
 
-	return new const Page(page->GetFullPath(), page->GetName(), pageContent);
+	//caller is responsible for freeing memory used by constructed page.
+	return new const Page(page->GetFullPath(), page->GetName(), finalPage);
 }
