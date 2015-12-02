@@ -15,8 +15,6 @@ using namespace std;
 HomeAutomationWebApp::HomeAutomationWebApp(HttpServer* server, const Folder* const rootDirectory) :
 	WebApp("homeautomation", server),
 	rootDirectory(rootDirectory),
-	garagePage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Garage/GarageControlPage.html"))),
-	authenticationResponsePage(static_cast<const Page* const>(rootDirectory->GetPage("/Projects/Garage/AuthenticationResponse.html"))),
 	userDAO(DbUserDAO::Create()),
 	controller(HomeAutomationController::Create())
 {
@@ -35,12 +33,12 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 	cout << "Received command " << commandName << " from user " << accountName << endl;
 	if (accountName.empty())
 	{
-		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
+		this->server->SendPage(nullptr, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 		return;
 	}
 	if (password.empty())
 	{
-		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
+		this->server->SendPage(nullptr, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 		return;
 	}
 
@@ -62,7 +60,7 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 	if (accessTypes.find("garage") == accessTypes.end())
 	{
 		this->log.error("Illegal garage access attempt from user " + accountName);
-		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
+		this->server->SendPage(nullptr, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 		return;
 	}
 
@@ -72,12 +70,11 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 	if (resultErrorCode == 0)
 	{
 		this->log.info("Controller successfully activated garage by user " + accountName);
-		this->server->SendPage(this->garagePage, clientSocket, 302, "/projects/Garage/GarageControlPage.html");
+		this->server->SendPage(nullptr, clientSocket, 302, "/projects/Garage/GarageControlPage.html");
 	}
 	else
 	{
 		this->log.error("Controller failed to activate garage by user " + accountName);
-		this->server->SendPage(this->authenticationResponsePage, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
+		this->server->SendPage(nullptr, clientSocket, 302, "/projects/Garage/AuthenticationResponse.html");
 	}
-
 }

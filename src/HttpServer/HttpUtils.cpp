@@ -119,7 +119,7 @@ namespace HttpUtils
 		return HttpRequestTypes::INVALID;
 	}
 
-	string urlDecode(string s, bool plussesAreSpaces)
+	string urlDecode(const string& s, bool plussesAreSpaces)
 	{
 		string newString;
 		newString.reserve(s.length());
@@ -157,6 +157,65 @@ namespace HttpUtils
 			else
 			{
 				newString.append({ s[a] });
+			}
+		}
+
+		return newString;
+	}
+
+	string urlEncode(const string& s, bool plussesAreSpaces)
+	{
+		string newString;
+		newString.reserve(s.length());
+
+		for (int a = 0; a < s.size(); ++a)
+		{
+			if (s[a] == 0)
+			{
+				break;
+			}
+
+			if (s[a] >= '0' && s[a] <= '9' ||
+				s[a] >= 'A' && s[a] <= 'Z' ||
+				s[a] >= 'a' && s[a] <= 'z' ||
+				s[a] == '-' || s[a] == '_' ||
+				s[a] == '.' || s[a] == '~')
+			{
+				newString += s[a];
+			}
+			else
+			{
+				const auto enc = urlEncodeMap.find(s[a]);
+				if (enc != urlEncodeMap.end())
+				{
+					newString += enc->second;
+				}
+			}
+		}
+
+		return newString;
+	}
+
+	string entityEncode(const string& s)
+	{
+		string newString;
+		newString.reserve(s.length());
+
+		for (int a = 0; a < s.size(); ++a)
+		{
+			if (s[a] == 0)
+			{
+				break;
+			}
+
+			const auto enc = entityEncodeMap.find(s[a]);
+			if (enc != entityEncodeMap.end())
+			{
+				newString += enc->second;
+			}
+			else
+			{
+				newString += s[a];
 			}
 		}
 

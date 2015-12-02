@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_set>
+#include "../User/User.h"
 
 class UserDAO
 {
@@ -12,6 +13,8 @@ public:
 	virtual int CreateAccount(const std::string& accountName, const std::string& password) = 0;
 	//returns user id if valid, else -1
 	virtual int GetUserId(const std::string& accountName, const std::string& password) = 0;
+	//returns user object if valid or created, else nullptr
+	virtual User GetValidatedAccount(const std::string& accountName, const std::string& password, const bool createIfNotExist, bool& wasCreated) = 0;
 	virtual std::unordered_set<std::string> GetAccessTypes(const int userId) = 0;
 	bool IsValid() const { return this->isValid; }
 	virtual ~UserDAO() {}

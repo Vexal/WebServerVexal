@@ -14,17 +14,15 @@ private:
 	const DbConfig dbConfig;
 	sql::Driver* driver = nullptr;
 
-protected:
+private:
 	DbUserDAO();
 
 public:
 	virtual int CreateAccount(const std::string& accountName, const std::string& password) override;
 	virtual int GetUserId(const std::string& accountName, const std::string& password) override;
+	virtual User GetValidatedAccount(const std::string& accountName, const std::string& password, const bool createIfNotExist, bool& wasCreated) override;
 	virtual std::unordered_set<std::string> GetAccessTypes(const int userId) override;
 	virtual ~DbUserDAO();
 
 	static DbUserDAO* Create();
-
-private:
-	static DbConfig loadConfig();
 };

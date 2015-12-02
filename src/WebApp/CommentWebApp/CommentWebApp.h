@@ -5,17 +5,17 @@
 class Folder;
 class Page;
 class UserDAO;
-class HomeAutomationController;
+class CommentsDAO;
 
-class HomeAutomationWebApp : public WebApp
+class CommentWebApp : public WebApp
 {
 private:
 	const Folder* const rootDirectory;
 	UserDAO* const userDAO;
-	HomeAutomationController* const controller;
-	Logger log = Logger("HomeAutomationWebApp");
+	CommentsDAO* const commentsDAO;
+	Logger log = Logger("CommentWebApp");
 
 public:
-	HomeAutomationWebApp(HttpServer* server, const Folder* const rootDirectory);
+	CommentWebApp(HttpServer* server, const Folder* const rootDirectory);
 	virtual void HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest) override;
 };

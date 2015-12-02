@@ -1,12 +1,18 @@
 #include "PageConstructor.h"
 #include <string>
 #include <algorithm>
-#include "Page.h"
 #include "../WebApp/WebPageApp/WebPageApp.h"
+#include "../HttpServer/HttpUtils.h"
+#include "Page.h"
 #include "Folder.h"
+
 using namespace std;
 
-Page const* PageConstructor::ConstructPage(const Page* const page, const Folder* const dir, const unordered_map<string, string> params)
+Page const* PageConstructor::ConstructPage(const Page* const page,
+	const Folder* const dir,
+	const HttpRequest& request,
+	const unordered_map<string, string>& params,
+	const unordered_map<string, function<string(string const&)> > paramFuncs)
 {
 	const char* const pageContent = page->GetContent();
 	string finalPage;
@@ -39,7 +45,7 @@ Page const* PageConstructor::ConstructPage(const Page* const page, const Folder*
 
 			if (operation == "LOAD")
 			{
-				const Page* const constructedChild = ConstructPage(static_cast<Page*>(dir->GetPage(operationTarget)), dir, params);
+				const Page* const constructedChild = ConstructPage(static_cast<Page*>(dir->GetPage(operationTarget)), dir, request, params, paramFuncs);
 				finalPage += string(constructedChild->GetContent()); // is it okay to do this recursively.
 				delete constructedChild;
 			}
@@ -51,20 +57,59 @@ Page const* PageConstructor::ConstructPage(const Page* const page, const Folder*
 				const int viewCount = vc != WebPageApp::viewCounts.end() ? vc->second : 0;
 				finalPage += to_string(viewCount);
 			}
-			else if (operation == "PARAM")
+			else if (operation == "OPT_REQUEST_PARAM_ENCODE" ||
+				operation == "OPT_REQUEST_PARAM" ||
+				operation == "REQUEST_PARAM_ENCODE" ||
+				operation == "REQUEST_PARAM")
 			{
-				const auto param = params.find(operationTarget);
-				if (param != params.end())
+				const auto param = request.paramMap.find(operationTarget);
+				if (param != request.paramMap.end())
 				{
-					finalPage += param->second;
+					if (operation == "REQUEST_PARAM_ENCODE" || operation == "OPT_REQUEST_PARAM_ENCODE")
+					{
+						finalPage += HttpUtils::urlDecode(param->second);
+					}
+					else
+					{
+						finalPage += param->second;
+					}
 				}
-				else
+				else if (operation != "OPT_REQUEST_PARAM" && operation != "OPT_REQUEST_PARAM_ENCODE")
 				{
 					finalPage += "{ERROR}";
 				}
 			}
-
-			currentPosition += 2; //skip " and }
+			else if (operation == "PARAM" ||
+				operation == "OPT_PARAM" ||
+				operation == "PARAM_ENCODE" ||
+				operation == "OPT_PARAM_ENCODE")
+			{
+				const auto param = params.find(operationTarget);
+				if (param != params.end())
+				{
+					if (operation == "PARAM_ENCODE" || operation == "OPT_PARAM_ENCODE")
+					{
+						finalPage += param->second;//HttpUtils::urlEncode(param->second);
+					}
+					else
+					{
+						finalPage += param->second;
+					}
+				}
+				else
+				{
+					const auto funcParam = paramFuncs.find(operationTarget);
+					if (funcParam != paramFuncs.end())
+					{
+						finalPage += funcParam->second(operationTarget);
+					}
+					else if (operation != "OPT_PARAM" && operation != "OPT_PARAM_ENCODE")
+					{
+						finalPage += "{ERROR}";
+					}
+				}
+			}
+			currentPosition += 1; // }
 		}
 	}
 

@@ -12,4 +12,5 @@ struct HttpRequest
 	const std::string clientAddressString;
 
 	std::string GetParameter(const std::string& param, const std::string& defaultResult = "") const;
+	std::string GetParameterDecoded(const std::string& param, const std::string& defaultResult = "") const;
 };

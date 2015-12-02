@@ -13,7 +13,7 @@
 using namespace std;
 
 DbUserDAO::DbUserDAO() :
-	dbConfig(DbUserDAO::loadConfig())
+	dbConfig(DbConfig::Load("dbconfig.txt", "vexal"))
 {
 	this->driver = get_driver_instance();
 }
@@ -72,6 +72,69 @@ int DbUserDAO::GetUserId(const string& accountName, const string& password)
 	}
 }
 
+User DbUserDAO::GetValidatedAccount(const string& accountName, const string& password, const bool createIfNotExist, bool& wasCreated)
+{
+	try
+	{
+		const MySqlConnection connection(this->driver, this->dbConfig);
+		connection.GetConnection()->setAutoCommit(false); //perform in transaction
+		{
+			//check if account exists
+			auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id FROM users WHERE username = ?");
+			prep_stmt->setString(1, accountName);
+
+			sql::ResultSet* const result = prep_stmt->executeQuery();
+			delete prep_stmt;
+
+			const int resultCount = result->rowsCount();
+			delete result;
+
+			if (resultCount != 1)
+			{
+				//account does not exist.  create with provided credentials
+				auto accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
+				accountCreateStatement->setString(1, accountName);
+				accountCreateStatement->setString(2, password);
+
+				const auto updatecount = accountCreateStatement->executeUpdate();
+				delete accountCreateStatement;
+				wasCreated = true;
+			}
+			else
+			{
+				wasCreated = false;
+			}
+		}
+
+		{
+			//get user
+			auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = ?");
+			prep_stmt->setString(1, accountName);
+			prep_stmt->setString(2, password);
+
+			const auto result = prep_stmt->executeQuery();
+			delete prep_stmt;
+
+			if (result->rowsCount() != 1)
+			{
+				delete result;
+				throw InvalidCredentialsException();
+			}
+			result->next();
+			const int id = result->getInt("id");
+			const string newUsername = result->getString("username");
+			delete result;
+			connection.GetConnection()->commit();
+			return{ id, newUsername };
+		}
+
+	}
+	catch (const sql::SQLException& e)
+	{
+		throw DataErrorException{ e.what() };
+	}
+}
+
 unordered_set<string> DbUserDAO::GetAccessTypes(const int userId)
 {
 	try
@@ -98,24 +161,6 @@ unordered_set<string> DbUserDAO::GetAccessTypes(const int userId)
 	{
 		throw DataErrorException{ e.what() };
 	}
-}
-
-DbConfig DbUserDAO::loadConfig()
-{
-	ifstream configFile("dbconfig.txt");
-	if (configFile.is_open())
-	{
-		string dbAddress, dbUsername, dbPassword;
-		configFile >> dbAddress;
-		configFile >> dbUsername;
-		configFile >> dbPassword;
-		
-		configFile.close();
-
-		return { dbAddress, dbUsername, dbPassword, "vexal" };
-	}
-
-	return{ "error" };
 }
 
 DbUserDAO::~DbUserDAO()

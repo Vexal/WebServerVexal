@@ -155,7 +155,7 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 	}
 
 	const Page* const newPage = assemblerPage->ClonePage(replaceTokens, replaceTexts);
-	const Page* const constructedPage = PageConstructor::ConstructPage(newPage, rootDirectory);
+	const Page* const constructedPage = PageConstructor::ConstructPage(newPage, rootDirectory, httpRequest);
 
 	delete newPage;
 

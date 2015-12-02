@@ -1,4 +1,3 @@
-
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <iostream>
@@ -15,6 +14,7 @@
 #include "../WebApp/WebPageApp/WebPageApp.h"
 #include "../WebApp/AccountCreateApp/AccountCreateApp.h"
 #include "../WebApp/HomeAutomationWebApp/HomeAutomationWebApp.h"
+#include "../WebApp/CommentWebApp/CommentWebApp.h"
 #include "../Serial/SerialController.h"
 #include "HttpServer.h"
 #include "HttpUtils.h"
@@ -54,6 +54,7 @@ bool HttpServer::initializeWebContent(const string& rootDirectory)
 	this->webApps["/compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	//this->webApps["/createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	this->webApps["/homeautomation"] = new HomeAutomationWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
+	this->webApps["/commentpost"] = new CommentWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;
 }
 
@@ -130,7 +131,7 @@ bool HttpServer::SendPage(const Page* const page, SOCKET clientSocket, int statu
 	string charSet = "charset=utf-8\r\n";
 	string status = "200 OK";
 
-	if(page != nullptr)
+	if (page != nullptr)
 	{
 		switch (page->GetContentType())
 		{
@@ -164,41 +165,54 @@ bool HttpServer::SendPage(const Page* const page, SOCKET clientSocket, int statu
 		default:
 			break;
 		}
+	}
 
-		switch (statusCode)
-		{
-		case 200:
-			status = "200 OK";
-			break;
-		case 302:
-			status = string("302 Found\r\n") + string("Location: ") + redirectUrl;
-			break;
-		case 404:
-			status = "404 NOT FOUND";
-			break;
-		}
+	switch (statusCode)
+	{
+	case 200:
+		status = "200 OK";
+		break;
+	case 302:
+		status = string("302 Found\r\n") + string("Location: ") + redirectUrl;
+		break;
+	case 404:
+		status = "404 NOT FOUND";
+		break;
+	}
 
-		const string l1 = "HTTP/1.1 " + status + "\r\n";
+	const string l1 = "HTTP/1.1 " + status + "\r\n";
+
+	string finalPage = l1;
+
+	if (page != nullptr)
+	{
 		const string l2 = "Content-Type: " + contentType + "/" + pageType + "; charset=utf-8\r\n";
 		const string l3 = "Content-Length: " + to_string(page->GetContentLength()) + "\r\n";
 		const string content = string(page->GetContent(), page->GetContentLength());
 
-		const string finalPage = l1 + l2 + l3 + "\r\n" + content;
-		
-		const auto sendAmount = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
-
-		if (sendAmount == SOCKET_ERROR || sendAmount < 0)
-		{
-			cout << "Send failed with error: " << endl;
-#ifdef _WIN32
-			closesocket(clientSocket);
-#else
-			close(clientSocket);
-#endif
-			return false;
-		}
+		finalPage += l2;
+		finalPage += l3;
+		finalPage += "\r\n";
+		finalPage += content;
 	}
+	else
+	{
+		finalPage += "\r\n";
+	}
+		
+	const auto sendAmount = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
 
+	if (sendAmount == SOCKET_ERROR || sendAmount < 0)
+	{
+		cout << "Send failed with error: " << endl;
+#ifdef _WIN32
+		closesocket(clientSocket);
+#else
+		close(clientSocket);
+#endif
+		return false;
+	}
+	
 	return true;
 }
 
