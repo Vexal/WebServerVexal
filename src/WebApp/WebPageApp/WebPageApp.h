@@ -8,12 +8,14 @@ class Page;
 class Folder;
 class ContentHost;
 class CommentsDAO;
+class CaptchaGenerator;
 
 class WebPageApp : public WebApp
 {
 private:
 	std::map<std::string, ContentHost*> virtualServers;
 	const CommentsDAO* const commentsDAO;
+	CaptchaGenerator* const captchaGenerator;
 	mutable Logger log = Logger("WebPageApp");
 
 public:

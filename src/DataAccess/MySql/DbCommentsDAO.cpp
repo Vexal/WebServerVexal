@@ -30,7 +30,8 @@ UserCommentsThread DbCommentsDAO::GetThread(const string& threadKey) const
 	const char* const getCommentsForThreadSql = "SELECT tblcomments.id as id, tblcomments.thread_id as thread_id, tblcomments.comment as comment, tblcomments.user_id as user_id, tblcomments.user_ip as user_ip, tblcomments.date as date, users.username as username "
 												"FROM tblcomments "
 												"JOIN users ON tblcomments.user_id = users.id "
-												"WHERE thread_id = ?";
+												"WHERE thread_id = ? "
+												"ORDER BY date DESC";
 	try
 	{
 		const MySqlConnection connection(this->driver, this->dbConfig);

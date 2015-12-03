@@ -19,9 +19,9 @@ private:
 
 public:
 	virtual int CreateAccount(const std::string& accountName, const std::string& password) override;
-	virtual int GetUserId(const std::string& accountName, const std::string& password) override;
+	virtual int GetUserId(const std::string& accountName, const std::string& password) const override;
 	virtual User GetValidatedAccount(const std::string& accountName, const std::string& password, const bool createIfNotExist, bool& wasCreated) override;
-	virtual std::unordered_set<std::string> GetAccessTypes(const int userId) override;
+	virtual std::unordered_set<std::string> GetAccessTypes(const int userId) const override;
 	virtual ~DbUserDAO();
 
 	static DbUserDAO* Create();

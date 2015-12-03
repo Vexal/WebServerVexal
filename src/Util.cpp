@@ -1,5 +1,6 @@
 #include "Util.h"
 #include <time.h>
+#include <chrono>
 
 using namespace std;
 
@@ -89,5 +90,11 @@ namespace Util
 		strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
 
 		return buf;
+	}
+
+	unsigned long long EpochTimeMillis()
+	{
+		using namespace std::chrono;
+		return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
 	}
 }

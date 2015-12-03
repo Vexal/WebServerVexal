@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "CommentWebApp.h"
+#include "../../Captcha/CaptchaGenerator.h"
 #include "../../DataAccess/MySql/DbUserDAO.h"
 #include "../../DataAccess/MySql/DbCommentsDAO.h"
 #include "../../DataAccess/DataErrorException.h"
@@ -8,6 +8,7 @@
 #include "../../HttpServer/HttpRequest.h"
 #include "../../Page/Folder.h"
 #include "../../Page/Page.h"
+#include "CommentWebApp.h"
 
 using namespace std;
 
@@ -15,7 +16,8 @@ CommentWebApp::CommentWebApp(HttpServer* server, const Folder* const rootDirecto
 	WebApp("commentpost", server),
 	rootDirectory(rootDirectory),
 	userDAO(DbUserDAO::Create()),
-	commentsDAO(DbCommentsDAO::Create())
+	commentsDAO(DbCommentsDAO::Create()),
+	captchaGenerator(CaptchaGenerator::Create())
 {
 
 }
@@ -25,10 +27,13 @@ void CommentWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRe
 	const string accountName = httpRequest.GetParameter("accountname");
 	const string password = httpRequest.GetParameter("password");
 	const string threadKey = httpRequest.GetParameterDecoded("threadkey");
+	const string commentText = httpRequest.GetParameterDecoded("commenttext");
+	const string captchaAnswer = httpRequest.GetParameter("captchaanswer");
+	const string captchaTime = httpRequest.GetParameter("captchatime");
+	const string captchaHash = httpRequest.GetParameter("captchahash");
 
 	string errorText = "";
 	string infoText = "";
-	const string commentText = httpRequest.GetParameterDecoded("commenttext");
 	log.info("Received comment " + commentText + " from user " + accountName);
 	cout << "Received comment " << commentText << " from user " << accountName << endl;
 	bool validInfo = true;
@@ -47,33 +52,45 @@ void CommentWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRe
 		validInfo = false;
 		errorText += "Comment text missing. ";
 	}
+	if (captchaAnswer.empty() || captchaHash.empty() || captchaTime.empty())
+	{
+		validInfo = false;
+		errorText += "Captcha data missing.";
+	}
 
-	unordered_set<string> accessTypes;
 	if (validInfo)
 	{
-		try
+		const bool validCaptcha = this->captchaGenerator->ValidateAnswer(captchaHash, captchaAnswer, captchaTime);
+		if (validCaptcha)
 		{
-			bool wasCreated = false;
-			const User user = this->userDAO->GetValidatedAccount(accountName, password, true, wasCreated);
-			cout << "Got user " << user.id << " " << user.username << endl;
-			accessTypes = this->userDAO->GetAccessTypes(user.id);
-
-			if (wasCreated)
+			try
 			{
-				infoText += "Created account " + accountName;
-			}
+				bool wasCreated = false;
+				const User user = this->userDAO->GetValidatedAccount(accountName, password, true, wasCreated);
 
-			this->commentsDAO->PostComment(threadKey, user, httpRequest.clientAddressString, commentText);
+				if (wasCreated)
+				{
+					infoText += "Created account " + accountName;
+				}
+
+				this->commentsDAO->PostComment(threadKey, user, httpRequest.clientAddressString, commentText);
+
+				infoText += " Comment successfully posted. ";
+			}
+			catch (const DataErrorException& e)
+			{
+				this->log.error("Data error: " + e.error);
+				errorText += "Database error. ";
+			}
+			catch (const InvalidCredentialsException& e)
+			{
+				this->log.error("Invalid credentials from user " + accountName);
+				errorText += "Invalid credentials for existing account. ";
+			}
 		}
-		catch (const DataErrorException& e)
+		else
 		{
-			this->log.error("Data error: " + e.error);
-			errorText += "Database error. ";
-		}
-		catch (const InvalidCredentialsException& e)
-		{
-			this->log.error("Invalid credentials from user " + accountName);
-			errorText += "Invalid credentials for existing account. ";
+			errorText += "Invalid captcha answer. ";
 		}
 	}
 

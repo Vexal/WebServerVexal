@@ -10,6 +10,7 @@
 #include "../../DataAccess/MySql/DbCommentsDAO.h"
 #include "../../DataAccess/DataErrorException.h"
 #include "../../CommentsSystem/CommentsException.h"
+#include "../../Captcha/CaptchaGenerator.h"
 
 using namespace std;
 
@@ -17,7 +18,8 @@ map<string, int> WebPageApp::viewCounts;
 
 WebPageApp::WebPageApp(HttpServer* server) :
 	WebApp("web", server),
-	commentsDAO(DbCommentsDAO::Create())
+	commentsDAO(DbCommentsDAO::Create()),
+	captchaGenerator(CaptchaGenerator::Create())
 {
 	ifstream inputFile("viewcounts.txt");
 	
@@ -45,7 +47,7 @@ void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpReque
 {
 	const Folder* const dir = this->virtualServers.at("Content/")->GetRootDirectory();
 
-	const Page* const page = httpRequest.request == "/" ? dir->GetDefaultPage() : static_cast<Page*>(dir->GetPage(httpRequest.requestTarget));
+	const Page* const page = httpRequest.requestTarget == "/" ? dir->GetDefaultPage() : static_cast<Page*>(dir->GetPage(httpRequest.requestTarget));
 
 	if (page != nullptr)
 	{
@@ -56,6 +58,10 @@ void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpReque
 			const string threadKey = CommentsDAO::GetThreadKey(httpRequest.requestTarget);
 			paramFuncs["comments"] = [&threadKey, &httpRequest, this](const string& op) {
 				return this->loadPageComments(threadKey, httpRequest.requestTarget);
+			};
+
+			paramFuncs["captchadata"] = [this](const string& op) {
+				return this->captchaGenerator->GenerateCaptcha().GenerateHtmlFormInput();
 			};
 
 			params["requestTarget"] = httpRequest.requestTarget;

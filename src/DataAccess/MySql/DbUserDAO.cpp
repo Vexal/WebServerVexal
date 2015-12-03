@@ -44,7 +44,7 @@ int DbUserDAO::CreateAccount(const string& accountName, const string& password)
 	return 0;
 }
 
-int DbUserDAO::GetUserId(const string& accountName, const string& password)
+int DbUserDAO::GetUserId(const string& accountName, const string& password) const
 {
 	try
 	{
@@ -89,7 +89,7 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 			const int resultCount = result->rowsCount();
 			delete result;
 
-			if (resultCount != 1)
+			if (resultCount != 1 && createIfNotExist)
 			{
 				//account does not exist.  create with provided credentials
 				auto accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
@@ -127,7 +127,6 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 			connection.GetConnection()->commit();
 			return{ id, newUsername };
 		}
-
 	}
 	catch (const sql::SQLException& e)
 	{
@@ -135,7 +134,7 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 	}
 }
 
-unordered_set<string> DbUserDAO::GetAccessTypes(const int userId)
+unordered_set<string> DbUserDAO::GetAccessTypes(const int userId) const
 {
 	try
 	{

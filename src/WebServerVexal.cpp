@@ -20,24 +20,9 @@ int main(int argc, char* argv[])
 	{
 		string input;
 		cin >> input;
-
-		if(input.compare("exit") == 0)
-		{
-			exit(0);
-		}
-		else if(input.compare("reload") == 0)
-		{
-
-		}
-		else if (input == "tc")
+		if (input == "tc")
 		{
 			printThreading = !printThreading;
-		}
-		else if (input == "maxthread")
-		{
-			int newThreadCount;
-			cin >> newThreadCount;
-			maxThreadCount.store(newThreadCount);
 		}
 		else if(input.compare("print") == 0)
 		{

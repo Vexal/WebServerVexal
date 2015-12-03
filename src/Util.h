@@ -26,4 +26,5 @@ namespace Util
 	}
 
 	std::string CurrentDateTime();
+	unsigned long long EpochTimeMillis();
 }

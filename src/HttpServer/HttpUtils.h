@@ -9,7 +9,6 @@ namespace HttpUtils
 	const std::string REQUEST_HTTP_VERSION_FIELD = ":http-version";
 	const std::string MALFORMED_REQUEST_FIELD = ":MALFORMED-REQUEST";
 
-
 	enum class HttpRequestTypes
 	{
 		INVALID,
@@ -32,6 +31,6 @@ namespace HttpUtils
 		{ '.', "%2E" },{ '/', "%2F" },{ '\"', "%22" },{ '#', "%23" },{ '$', "%24" },{ '%', "%25" },{ '&', "%26" },
 	};
 	const std::unordered_map<char, std::string> entityEncodeMap = {
-		{ '<', "&lt;" },{ '>', "&gt;" }
+		{ '<', "&lt;" },{ '>', "&gt;" },{ '&', "&amp"}
 	};
 }
