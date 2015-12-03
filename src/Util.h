@@ -27,4 +27,10 @@ namespace Util
 
 	std::string CurrentDateTime();
 	unsigned long long EpochTimeMillis();
+	std::string GetBase64String(const unsigned char* const inp, const unsigned int len);
+
+	const std::string base64_chars =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz"
+		"0123456789+/";
 }

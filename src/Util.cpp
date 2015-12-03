@@ -1,6 +1,7 @@
 #include "Util.h"
 #include <time.h>
 #include <chrono>
+#include <algorithm>
 
 using namespace std;
 
@@ -96,5 +97,56 @@ namespace Util
 	{
 		using namespace std::chrono;
 		return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
+	}
+
+	//probably an off by 2 error somewhere.  why did I do this myself.
+	string GetBase64String(const unsigned char* const inp, const unsigned int len)
+	{
+		int co = 0;
+		int byteCounter = 0;
+		string finalString = "";
+		finalString.reserve(len);
+		const int lengthRemainder = (len * 8) % 3;
+
+		for (co = len - 1 + lengthRemainder; co >= 0;)
+		{
+			int nextDigit = 0;
+			if (byteCounter == 0 || byteCounter % 8 == 0)
+			{
+				const unsigned char firstHalf = co >= len ? 0 : inp[co] & 0x3F;
+				nextDigit = firstHalf;
+			}
+			else if (byteCounter % 8 == 6)
+			{
+				const unsigned char firstHalf = co >= len ? 0 : inp[co] & 0xC0;
+				const unsigned char secondHalf = (co - 1) >= len ? 0 : inp[co - 1] & 0x0F;
+				nextDigit = (firstHalf >> 6) + (secondHalf << 2);
+				--co;
+			}
+			else if (byteCounter % 8 == 4)
+			{
+				const unsigned char firstHalf = co >= len ? 0 : inp[co] & 0xF0;
+				const unsigned char secondHalf = (co - 1) >= len ? 0 : inp[co - 1] & 0x03;
+				nextDigit = (firstHalf >> 4) + (secondHalf << 4);
+				--co;
+			}
+			else if (byteCounter % 8 == 2)
+			{
+				const unsigned char firstHalf = co >= len ? 0 : inp[co] & 0xFC;
+				nextDigit = (firstHalf >> 2);
+				--co;
+			}
+
+			finalString += base64_chars[nextDigit];
+			byteCounter += 6;
+		}
+
+		for (int a = 0; a < lengthRemainder; ++a)
+		{
+			finalString[a] = '=';
+		}
+
+		reverse(finalString.begin(), finalString.end());
+		return finalString;
 	}
 }

@@ -56,6 +56,7 @@ void WebPageApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpReque
 			unordered_map<string, string> params;
 			unordered_map<string, function<string(string const&)> > paramFuncs;
 			const string threadKey = CommentsDAO::GetThreadKey(httpRequest.requestTarget);
+
 			paramFuncs["comments"] = [&threadKey, &httpRequest, this](const string& op) {
 				return this->loadPageComments(threadKey, httpRequest.requestTarget);
 			};
