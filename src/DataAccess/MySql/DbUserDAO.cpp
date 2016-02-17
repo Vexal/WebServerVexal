@@ -56,7 +56,7 @@ int DbUserDAO::GetUserId(const string& accountName, const string& password) cons
 		const auto result = prep_stmt->executeQuery();
 		delete prep_stmt;
 
-		if (result->next())
+		if (!result->next())
 		{
 			delete result;
 			throw InvalidCredentialsException();
