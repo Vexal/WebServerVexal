@@ -11,6 +11,7 @@
 #include "CommentWebApp.h"
 
 using namespace std;
+extern bool printEverything;
 
 CommentWebApp::CommentWebApp(HttpServer* server, const Folder* const rootDirectory) :
 	WebApp("commentpost", server),
@@ -70,6 +71,11 @@ void CommentWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRe
 
 				if (wasCreated)
 				{
+					if (printEverything)
+					{
+						log.info("Created account " + user.username);
+					}
+
 					infoText += "Created account " + accountName;
 				}
 

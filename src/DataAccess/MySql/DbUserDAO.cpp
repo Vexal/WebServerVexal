@@ -90,7 +90,7 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 			const int resultCount = result->rowsCount();
 			delete result;
 
-			if (!result->next())
+			if (resultCount == 0)
 			{
 				//account does not exist.  attempt to create with provided credentials (someone could have gotten here first)
 				auto const accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT IGNORE INTO users (username, password) VALUES (?, ?)");

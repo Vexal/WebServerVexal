@@ -42,12 +42,11 @@ UserCommentsThread DbCommentsDAO::GetThread(const string& threadKey) const
 		sql::ResultSet* const result = getThreadsStatement->executeQuery();
 		delete getThreadsStatement;
 
-		if (result->rowsCount() != 1)
+		if (!result->next())
 		{
 			throw CommentsException{ "Error:  Invalid thread key." };
 		}
-
-		result->next();
+		
 		const unsigned int threadId = result->getUInt("id");
 
 		delete result;
@@ -102,12 +101,11 @@ void DbCommentsDAO::PostComment(const string& threadKey, const User& user, const
 		sql::ResultSet* const result = getThreadsStatement->executeQuery();
 		delete getThreadsStatement;
 
-		if (result->rowsCount() != 1)
+		if (!result->next())
 		{
 			throw CommentsException{ "Error:  Invalid thread key." };
 		}
 
-		result->next();
 		const unsigned int threadId = result->getUInt("id");
 
 		delete result;
