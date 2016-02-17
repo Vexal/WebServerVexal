@@ -40,6 +40,7 @@ struct WorkerData
 	bool keepAlive;
 };
 
+//This is lowest level of the server, responsible for handling sockets and assigning connections to threads.
 class Server
 {
 	SOCKET serverSocket = INVALID_SOCKET;

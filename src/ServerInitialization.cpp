@@ -44,7 +44,6 @@ bool Server::initializeTCPSocket()
 	}
 
 	this->serverSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-
 	if (this->serverSocket == INVALID_SOCKET)
 	{
 		std::cout << "Error at socket(): " << std::endl;
@@ -54,6 +53,9 @@ bool Server::initializeTCPSocket()
 #endif
 		return false;
 	}
+
+	unsigned long timeout = 60000; //60 seconds
+	setsockopt(this->serverSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 
 	std::cout << "Socket creation successful." << std::endl;
 
