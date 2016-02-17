@@ -54,7 +54,13 @@ bool Server::initializeTCPSocket()
 		return false;
 	}
 
+#ifdef _WIN32
 	unsigned long timeout = 60000; //60 seconds
+#else
+	struct timeval timeout;
+	timeout.tv_sec = 60;
+	timeout.tv_usec = 0;
+#endif
 	setsockopt(this->serverSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 
 	std::cout << "Socket creation successful." << std::endl;
