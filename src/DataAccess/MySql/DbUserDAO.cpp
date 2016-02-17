@@ -56,12 +56,12 @@ int DbUserDAO::GetUserId(const string& accountName, const string& password) cons
 		const auto result = prep_stmt->executeQuery();
 		delete prep_stmt;
 
-		if (result->rowsCount() != 1)
+		if (result->next())
 		{
 			delete result;
 			throw InvalidCredentialsException();
 		}
-		result->next();
+
 		const int id = result->getInt("id");
 		delete result;
 		return id;
@@ -77,7 +77,8 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 	try
 	{
 		const MySqlConnection connection(this->driver, this->dbConfig);
-		connection.GetConnection()->setAutoCommit(false); //perform in transaction
+
+		if (createIfNotExist)
 		{
 			//check if account exists
 			auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id FROM users WHERE username = ?");
@@ -89,16 +90,16 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 			const int resultCount = result->rowsCount();
 			delete result;
 
-			if (resultCount != 1 && createIfNotExist)
+			if (!result->next())
 			{
-				//account does not exist.  create with provided credentials
-				auto accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
+				//account does not exist.  attempt to create with provided credentials (someone could have gotten here first)
+				auto const accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT IGNORE INTO users (username, password) VALUES (?, ?)");
 				accountCreateStatement->setString(1, accountName);
 				accountCreateStatement->setString(2, password);
 
-				const auto updatecount = accountCreateStatement->executeUpdate();
+				const int updatecount = accountCreateStatement->executeUpdate();
 				delete accountCreateStatement;
-				wasCreated = true;
+				wasCreated = updatecount == 1;
 			}
 			else
 			{
@@ -108,23 +109,22 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 
 		{
 			//get user
-			auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = ?");
+			auto const prep_stmt = connection.GetConnection()->prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = ?");
 			prep_stmt->setString(1, accountName);
 			prep_stmt->setString(2, password);
 
 			const auto result = prep_stmt->executeQuery();
 			delete prep_stmt;
 
-			if (result->rowsCount() != 1)
+			if (!result->next())
 			{
 				delete result;
 				throw InvalidCredentialsException();
 			}
-			result->next();
+
 			const int id = result->getInt("id");
 			const string newUsername = result->getString("username");
 			delete result;
-			connection.GetConnection()->commit();
 			return{ id, newUsername };
 		}
 	}
