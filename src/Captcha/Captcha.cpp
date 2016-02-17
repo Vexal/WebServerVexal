@@ -98,7 +98,7 @@ string Captcha::GenerateHtmlFormInput() const
 	html += "<input type='hidden' name='captchahash' value='"; html += this->answerHash; html += "'/>";
 
 	const unsigned long long tt = Util::EpochTimeMillis() - startTime;
-	//if (printEverything)
+	if (printEverything)
 		cout << "Captcha generation time " << tt << endl;
 	return html;
 }

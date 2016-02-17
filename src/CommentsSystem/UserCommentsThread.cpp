@@ -21,6 +21,9 @@ string UserCommentsThread::GenerateCommentHtml(const UserComment& comment)
 	html += "<span class=\"commentheader\">";
 	html += "<span class=\"commentusername\">";
 	html += HttpUtils::entityEncode(comment.username);
+	html += " (id: ";
+	html += comment.userId;
+	html += ")";
 	html += "</span>";
 	html += "<span class=\"commentdate\">";
 	html += comment.timestamp;
