@@ -1,6 +1,6 @@
 #pragma once
 #include "../UserDAO.h"
-#include "DbConfig.h"
+#include "MySqlDAO.h"
 
 namespace sql
 {
@@ -8,12 +8,8 @@ namespace sql
 	class Connection;
 }
 
-class DbUserDAO : public UserDAO
+class DbUserDAO : public UserDAO, public MySqlDAO
 {
-private:
-	const DbConfig dbConfig;
-	sql::Driver* driver = nullptr;
-
 private:
 	DbUserDAO();
 

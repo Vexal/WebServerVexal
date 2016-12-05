@@ -131,7 +131,7 @@ WebNode* Folder::GetPage(const string& pageName) const
 			}
 		}
 		
-		log.error(pageName + " not found in directory " + this->fullPath);	
+		//log.error(pageName + " not found in directory " + this->fullPath);
 	}
 	else
 	{

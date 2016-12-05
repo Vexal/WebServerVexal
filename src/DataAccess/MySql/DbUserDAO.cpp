@@ -12,20 +12,22 @@
 
 using namespace std;
 
-DbUserDAO::DbUserDAO() :
-	dbConfig(DbConfig::Load("dbconfig.txt", "vexal"))
+DbUserDAO::DbUserDAO()
 {
-	this->driver = get_driver_instance();
+	
 }
 
 int DbUserDAO::CreateAccount(const string& accountName, const string& password)
 {
 	try
 	{
-		const MySqlConnection connection(this->driver, this->dbConfig);
-		auto prep_stmt = connection.GetConnection()->prepareStatement("INSERT IGNORE INTO users (username, password) VALUES (?, ?)");
+		const MySqlConnection connection = this->getConnection();
+		const int salt = rand() % 100000;
+		auto prep_stmt = connection.GetConnection()->prepareStatement("INSERT IGNORE INTO users (username, password, salt) VALUES (?, sha1(concat(?, ?)), ?)");
 		prep_stmt->setString(1, accountName);
 		prep_stmt->setString(2, password);
+		prep_stmt->setInt(3, salt);
+		prep_stmt->setInt(4, salt);
 
 		const auto updatecount = prep_stmt->executeUpdate();
 		delete prep_stmt;
@@ -48,8 +50,8 @@ int DbUserDAO::GetUserId(const string& accountName, const string& password) cons
 {
 	try
 	{
-		const MySqlConnection connection(this->driver, this->dbConfig);
-		auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id FROM users WHERE username = ? AND password = ?");
+		const MySqlConnection connection = this->getConnection();
+		auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id FROM users WHERE username = ? AND password = sha1(concat(?, salt))");
 		prep_stmt->setString(1, accountName);
 		prep_stmt->setString(2, password);
 
@@ -76,8 +78,7 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 {
 	try
 	{
-		const MySqlConnection connection(this->driver, this->dbConfig);
-
+		const MySqlConnection connection = this->getConnection();
 		if (createIfNotExist)
 		{
 			//check if account exists
@@ -92,10 +93,13 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 
 			if (resultCount == 0)
 			{
-				//account does not exist.  attempt to create with provided credentials (someone could have gotten here first)
-				auto const accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT IGNORE INTO users (username, password) VALUES (?, ?)");
+				//account does not exist.  attempt to create with provided credentials (someone could have gotten here first -- that's okay)
+				const int salt = rand() % 100000;
+				auto const accountCreateStatement = connection.GetConnection()->prepareStatement("INSERT IGNORE INTO users (username, password, salt) VALUES (?, sha1(concat(?, ?)), ?)");
 				accountCreateStatement->setString(1, accountName);
 				accountCreateStatement->setString(2, password);
+				accountCreateStatement->setInt(3, salt);
+				accountCreateStatement->setInt(4, salt);
 
 				const int updatecount = accountCreateStatement->executeUpdate();
 				delete accountCreateStatement;
@@ -109,7 +113,7 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 
 		{
 			//get user
-			auto const prep_stmt = connection.GetConnection()->prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = ?");
+			auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT id, username FROM users WHERE username = ? AND password = sha1(concat(?, salt))");
 			prep_stmt->setString(1, accountName);
 			prep_stmt->setString(2, password);
 
@@ -138,7 +142,7 @@ unordered_set<string> DbUserDAO::GetAccessTypes(const int userId) const
 {
 	try
 	{
-		const MySqlConnection connection(this->driver, this->dbConfig);
+		const MySqlConnection connection = this->getConnection();
 		auto prep_stmt = connection.GetConnection()->prepareStatement("SELECT access FROM tbluseraccess WHERE user_id = ?");
 		prep_stmt->setInt(1, userId);
 

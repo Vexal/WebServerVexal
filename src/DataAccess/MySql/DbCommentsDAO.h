@@ -1,6 +1,6 @@
 #pragma once
 #include "../CommentsDAO.h"
-#include "DbConfig.h"
+#include "MySqlDAO.h"
 
 namespace sql
 {
@@ -8,12 +8,8 @@ namespace sql
 	class Connection;
 }
 
-class DbCommentsDAO : public CommentsDAO
+class DbCommentsDAO : public CommentsDAO, public MySqlDAO
 {
-private:
-	const DbConfig dbConfig;
-	sql::Driver* driver = nullptr;
-
 private:
 	DbCommentsDAO();
 

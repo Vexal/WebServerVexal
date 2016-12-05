@@ -10,10 +10,9 @@
 
 using namespace std;
 
-DbCommentsDAO::DbCommentsDAO() :
-	dbConfig(DbConfig::Load("dbconfig.txt", "vexal"))
+DbCommentsDAO::DbCommentsDAO()
 {
-	this->driver = get_driver_instance(); //TODO learn if I'm supposed to do this for every DAO
+
 }
 
 UserCommentsThread DbCommentsDAO::GetThread(const unsigned int threadId) const
@@ -34,7 +33,7 @@ UserCommentsThread DbCommentsDAO::GetThread(const string& threadKey) const
 												"ORDER BY date DESC";
 	try
 	{
-		const MySqlConnection connection(this->driver, this->dbConfig);
+		const MySqlConnection connection = this->getConnection();
 
 		sql::PreparedStatement* const getThreadsStatement = connection.GetConnection()->prepareStatement(getThreadsSql);
 		getThreadsStatement->setString(1, threadKey);
@@ -93,7 +92,7 @@ void DbCommentsDAO::PostComment(const string& threadKey, const User& user, const
 										 "VALUES(?, ?, ?, ?)";
 	try
 	{
-		const MySqlConnection connection(this->driver, this->dbConfig);
+		const MySqlConnection connection = this->getConnection();
 
 		sql::PreparedStatement* const getThreadsStatement = connection.GetConnection()->prepareStatement(getThreadsSql);
 		getThreadsStatement->setString(1, threadKey);
