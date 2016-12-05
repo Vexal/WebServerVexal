@@ -29,11 +29,14 @@
 #define SOCKET_ERROR -1
 #define SOCKET int
 #endif
+#include "PiController.h"
 
 class PiServer
 {
+private:
 	SOCKET serverSocket = INVALID_SOCKET;
 	std::string port = "8891";
+	PiController piController;
 
 public:
 	bool InitializeServer();
@@ -46,7 +49,7 @@ private:
 	bool listenSocket();
 
 	bool checkForNewConnection();
-	void receiveThenHandleClientRequest(SOCKET clientSocket, const std::string& clientAddressString) const;
+	void receiveThenHandleClientRequest(SOCKET clientSocket, const std::string& clientAddressString);
 };
 
 void closesocket2(SOCKET);

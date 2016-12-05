@@ -69,7 +69,7 @@ bool PiServer::checkForNewConnection()
 }
 
 #define MAX_REQUEST_SIZE 16284
-void PiServer::receiveThenHandleClientRequest(SOCKET clientSocket, const string& clientAddressString) const
+void PiServer::receiveThenHandleClientRequest(SOCKET clientSocket, const string& clientAddressString)
 {
 	char bufferRcv[MAX_REQUEST_SIZE];
 	const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 2, 0);
@@ -84,5 +84,7 @@ void PiServer::receiveThenHandleClientRequest(SOCKET clientSocket, const string&
 		}
 	}
 
+	const string data(bufferRcv);
+	this->piController.doEverything(data);
 	closesocket2(clientSocket);
 }
