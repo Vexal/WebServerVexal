@@ -15,6 +15,7 @@ protected:
 public:
 	//return 0 if successful.
 	int ActivateGarage(std::string& resultStatus);
+	int ActivateGarageNetwork(std::string& resultStatus);
 
 public:
 	//returns singleton

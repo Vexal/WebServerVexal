@@ -65,7 +65,8 @@ void HomeAutomationWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest&
 	}
 
 	string resultStatusMessage;
-	const int resultErrorCode = this->controller->ActivateGarage(resultStatusMessage);
+	//const int resultErrorCode = this->controller->ActivateGarage(resultStatusMessage);
+	const int resultErrorCode = this->controller->ActivateGarageNetwork(resultStatusMessage);
 
 	if (resultErrorCode == 0)
 	{
