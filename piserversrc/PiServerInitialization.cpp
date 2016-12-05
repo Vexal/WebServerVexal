@@ -43,7 +43,7 @@ bool PiServer::initializeTCPSocket()
 {
 #ifndef _WIN32
 	if (signal(SIGINT, sig_handler) == SIG_ERR)
-		std::cout << "ERROR: cannot catch signals." << endl;
+		std::cout << "ERROR: cannot catch signals." << std::endl;
 #endif
 
 	addrinfo *result = NULL, *ptr = NULL, hints;
