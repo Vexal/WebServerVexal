@@ -1,0 +1,2 @@
+#!/bin/bash
+g++ -O -std=c++11 -w -fpermissive -O3 piserversrc/PiServer.cpp piserversrc/PiServerInitialization.cpp -lwiringpi -o PiServerVexal
