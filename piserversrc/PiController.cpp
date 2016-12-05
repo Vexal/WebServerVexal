@@ -38,7 +38,7 @@ void PiController::doEverything(const std::string& thingsToDo)
 	else if (playSound)
 	{
 #ifndef _WIN32
-		system("omxplayer ~/dev/WebServerVexal/alarm.wav");
+		system("omxplayer /home/pi/dev/WebServerVexal/alarm.wav");
 #endif
 	}
 	cout << "Did everything with Pi Controller: " << thingsToDo << endl;

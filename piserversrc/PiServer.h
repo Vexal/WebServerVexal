@@ -35,7 +35,7 @@ class PiServer
 {
 private:
 	SOCKET serverSocket = INVALID_SOCKET;
-	std::string port = "8891";
+	std::string port = "9191";
 	PiController piController;
 
 public:

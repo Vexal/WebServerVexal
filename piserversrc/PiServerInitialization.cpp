@@ -3,6 +3,24 @@
 #include <fstream>
 #include "PiServer.h"
 
+int socketToKill = -1;
+#ifndef _WIN32
+#include<signal.h>
+void sig_handler(int signo)
+{
+	using namespace std;
+	if (signo == SIGINT)
+	{
+		cout << "Received sig kill" << endl;
+		if (socketToKill > -1)
+		{
+			close(socketToKill);
+		}
+		exit(0);
+	}
+}
+
+#endif
 bool PiServer::initializeWSA()
 {
 #ifdef _WIN32
@@ -23,6 +41,11 @@ bool PiServer::initializeWSA()
 
 bool PiServer::initializeTCPSocket()
 {
+#ifndef _WIN32
+	if (signal(SIGINT, sig_handler) == SIG_ERR)
+		std::cout << "ERROR: cannot catch signals." << endl;
+#endif
+
 	addrinfo *result = NULL, *ptr = NULL, hints;
 
 	memset(&hints, 0, sizeof(hints));
@@ -43,6 +66,7 @@ bool PiServer::initializeTCPSocket()
 	}
 
 	this->serverSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+	socketToKill = this->serverSocket;
 	if (this->serverSocket == INVALID_SOCKET)
 	{
 		std::cout << "Error at socket(): " << std::endl;
