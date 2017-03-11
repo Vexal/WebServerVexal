@@ -2,11 +2,13 @@
 #include "../CommentsDAO.h"
 #include "MySqlDAO.h"
 
+#ifndef _DEBUG
 namespace sql
 {
 	class Driver;
 	class Connection;
 }
+#endif
 
 class DbCommentsDAO : public CommentsDAO, public MySqlDAO
 {

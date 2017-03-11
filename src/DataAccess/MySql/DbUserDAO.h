@@ -2,11 +2,13 @@
 #include "../UserDAO.h"
 #include "MySqlDAO.h"
 
+#ifndef _DEBUG
 namespace sql
 {
 	class Driver;
 	class Connection;
 }
+#endif
 
 class DbUserDAO : public UserDAO, public MySqlDAO
 {

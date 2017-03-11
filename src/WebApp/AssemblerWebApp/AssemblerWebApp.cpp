@@ -21,9 +21,6 @@ AssemblerWebApp::AssemblerWebApp(HttpServer* server, const Folder* const rootDir
 
 void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& httpRequest)
 {
-	vector<string> replaceTokens;
-	vector<string> replaceTexts;
-
 	const string firstHalf = "<textarea spellcheck='false' rows = '20' cols = '20' name = 'assembledcode'>";
 	const string secondHalf = "</textarea>";
 	const string firstHalf2 = "<textarea spellcheck='false' rows = '20' cols = '40' name = 'comment'>";
@@ -31,7 +28,6 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 	string errorText = "";
 	string assembledCode = "";
 
-	const bool useHProtection = httpRequest.GetParameter("hprot") == "on";
 	const bool createStack = httpRequest.GetParameter("stack") == "createstack";
 	const bool useSimulator = !httpRequest.GetParameter("stepcount").empty();
 	
@@ -44,25 +40,14 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 	if (endianness == "littleendian")
 	{
 		endianType = CS350::CS_LITTLE_ENDIAN;
-		replaceTokens.push_back("~little");
-		replaceTexts.push_back(" checked");
 	}
 	else if (endianness == "bigendian")
 	{
 		endianType = CS350::CS_BIG_ENDIAN;
-		replaceTokens.push_back("~big");
-		replaceTexts.push_back(" checked");
-	}
-	else if (endianness == "indian")
-	{
-		endianType = CS350::CS_INDIAN;
-		replaceTokens.push_back("~indian");
-		replaceTexts.push_back(" checked");
 	}
 	else
 	{
-		replaceTokens.push_back("~16b");
-		replaceTexts.push_back(" checked");
+
 	}
 
 	if (code.empty() && !createStack)
@@ -75,6 +60,8 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 		errorText += "missing user name\n";
 	}
 
+
+	unordered_map<string, string> pageParams;
 	if (errorText.empty())
 	{
 		if (createStack)
@@ -86,7 +73,7 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 			code = HttpUtils::urlDecode(code);
 		}
 
-		Assembler ourAssembler(code, endianType, useHProtection, createStack);
+		Assembler ourAssembler(code, endianType, createStack);
 		assembledCode = ourAssembler.Assemble();
 		errorText += ourAssembler.GetErrorText();
 		Simulator simulator(ourAssembler.GetMachineCode(), ourAssembler.GetLineDataType());
@@ -105,19 +92,16 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 				stepCount = stepCount2;
 			}
 		}
-	
+
+		pageParams["stepcount"] = stepCount;
 		simulator.Run(stepCt);
 		ProgramState endState = simulator.GetCurrentProgramState();
-		replaceTokens.push_back("~sim");
 
 
 		const string firstHalf = "<pre cols='130' style='border-style:solid; height:500px; overflow-y:scroll; background-color:white;' name='simval'>";
 		const string secondHalf = "</pre>";
 
-		replaceTexts.push_back(firstHalf + simulator.GetOutput() + secondHalf);
-
-		replaceTokens.push_back("name='stepcount' value='");
-		replaceTexts.push_back(stepCount);
+		pageParams["simulator"] = firstHalf + simulator.GetOutput() + secondHalf;
 
 		//create another textbox if there is expanded code
 		if (ourAssembler.HasExpandedCode() && errorText == "")
@@ -125,39 +109,23 @@ void AssemblerWebApp::HandleRequest(SOCKET clientSocket, const HttpRequest& http
 			const string firstHalf3 = "<textarea spellcheck='false' rows = '20' cols = '40' name = 'expandedcode' readonly>";
 			const string secondHalf3 = "</textarea>";
 
-
-			replaceTokens.push_back("~exp");
-			replaceTexts.push_back(firstHalf3 + "//Expanded code generated\n//Uses r5 for scratch arithmetic\n\n" + ourAssembler.GetAssemblyCode() + secondHalf3);
+			pageParams["expansion"] = firstHalf3 + "//Expanded code generated\n//Uses r5 for scratch arithmetic\n\n" + ourAssembler.GetAssemblyCode() + secondHalf3;
 		}
 	}
 
-	replaceTokens.push_back("name='username' value='");
-	replaceTexts.push_back(username + "'");
-
-	replaceTokens.push_back("form='usrform'>");
-	replaceTexts.push_back(code);
-
-	replaceTokens.push_back("~ins");
+	pageParams["username"] = username;
+	pageParams["code"] = code;
 
 	if (errorText == "")
 	{
-		replaceTexts.push_back(firstHalf + assembledCode + secondHalf);
+		pageParams["results"] = firstHalf + assembledCode + secondHalf;
 	}
 	else
 	{
-		replaceTexts.push_back(firstHalf + errorText + secondHalf);
+		pageParams["results"] = firstHalf + errorText + secondHalf;
 	}
 
-	if (useHProtection)
-	{
-		replaceTokens.push_back("hprot'");
-		replaceTexts.push_back(" checked");
-	}
-
-	const Page* const newPage = assemblerPage->ClonePage(replaceTokens, replaceTexts);
-	const Page* const constructedPage = PageConstructor::ConstructPage(newPage, rootDirectory, httpRequest);
-
-	delete newPage;
+	const Page* const constructedPage = PageConstructor::ConstructPage(assemblerPage, rootDirectory, httpRequest, pageParams);
 
 	this->server->SendPage(constructedPage, clientSocket);
 	delete constructedPage;

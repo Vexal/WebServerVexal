@@ -1,7 +1,9 @@
+#ifndef _DEBUG
 #include <cppconn/driver.h>
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
+#endif
 
 #include "../../CommentsSystem/CommentsException.h"
 #include "../DataErrorException.h"
@@ -22,6 +24,7 @@ UserCommentsThread DbCommentsDAO::GetThread(const unsigned int threadId) const
 
 UserCommentsThread DbCommentsDAO::GetThread(const string& threadKey) const
 {
+#ifndef _DEBUG
 	const char* const getThreadsSql = "SELECT id "
 									  "FROM tblthreads "
 									  "WHERE thread_key = ?";
@@ -78,12 +81,13 @@ UserCommentsThread DbCommentsDAO::GetThread(const string& threadKey) const
 	{
 		throw DataErrorException{ e.what() };
 	}
-
+#endif
 	return{0};
 }
 
 void DbCommentsDAO::PostComment(const string& threadKey, const User& user, const string& userIpAddress, const string& comment) const
 {
+#ifndef _DEBUG
 	const char* const getThreadsSql = "SELECT id "
 		"FROM tblthreads "
 		"WHERE thread_key = ?";
@@ -122,6 +126,7 @@ void DbCommentsDAO::PostComment(const string& threadKey, const User& user, const
 	{
 		throw DataErrorException{ e.what() };
 	}
+#endif
 }
 
 DbCommentsDAO* DbCommentsDAO::Create()

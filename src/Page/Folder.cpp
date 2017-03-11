@@ -4,7 +4,7 @@
 #ifdef WIN32
 #include <windows.h>
 #include <shlwapi.h>
-#include <atldbcli.h>
+#include <string.h>
 #else
 #include <dirent.h>
 #include <cstring>
@@ -55,20 +55,20 @@ Folder::Folder(const string& fullPath, const string& name) :
 				//wcout << L"Found directory: " << data.cFileName << endl;
 
 				size_t convnum;
-				char* pathChar = new char[strlenT(data.cFileName) + 1];
-				wcstombs_s(&convnum, pathChar, strlenT(data.cFileName) + 1, data.cFileName, strlenT(data.cFileName) + 1);
+				char* pathChar = new char[wcslen(data.cFileName) + 1];
+				wcstombs_s(&convnum, pathChar, wcslen(data.cFileName) + 1, data.cFileName, wcslen(data.cFileName) + 1);
 				string s(pathChar);
-				this->pages[Util::to_upper(pathChar, strlenT(data.cFileName))] = new Folder(this->fullPath + s + "/", s);
+				this->pages[Util::to_upper(pathChar, wcslen(data.cFileName))] = new Folder(this->fullPath + s + "/", s);
 				delete[] pathChar;
 			}
 			else
 			{
 				size_t convnum;
-				char* pathChar = new char[strlenT(data.cFileName) + 1];
-				wcstombs_s(&convnum, pathChar, strlenT(data.cFileName) + 1, data.cFileName, strlenT(data.cFileName) + 1);
+				char* pathChar = new char[wcslen(data.cFileName) + 1];
+				wcstombs_s(&convnum, pathChar, wcslen(data.cFileName) + 1, data.cFileName, wcslen(data.cFileName) + 1);
 				string s(pathChar);
 				//wcout << L"Found file: " << data.cFileName << endl;
-				this->pages[Util::to_upper(pathChar, strlenT(data.cFileName))] = new Page(this->fullPath + s, s);
+				this->pages[Util::to_upper(pathChar, wcslen(data.cFileName))] = new Page(this->fullPath + s, s);
 				delete[] pathChar;
 			}
 		}

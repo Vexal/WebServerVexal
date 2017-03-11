@@ -1,0 +1,9 @@
+Content/*
+OtherContent/*
+config.txt
+db/*
+dbconfig.txt
+x64/*
+WebServerVexal.*
+captcha*
+makepiserver.cpp*

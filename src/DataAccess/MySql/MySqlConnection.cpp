@@ -1,3 +1,4 @@
+#ifndef _DEBUG
 #include <iostream>
 #include <cppconn/driver.h>
 #include <cppconn/statement.h>
@@ -72,3 +73,4 @@ void MySqlConnection::cleanUp()
 		delete this->connection;
 	}
 }
+#endif

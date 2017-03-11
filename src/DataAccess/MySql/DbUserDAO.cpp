@@ -1,10 +1,11 @@
 #include <iostream>
 #include <fstream>
+#ifndef _DEBUG
 #include <cppconn/driver.h>
 #include <cppconn/statement.h>
 #include <cppconn/prepared_statement.h>
 #include <cppconn/exception.h>
-
+#endif
 #include "DbUserDAO.h"
 #include "MySqlConnection.h"
 #include "../DataErrorException.h"
@@ -19,6 +20,7 @@ DbUserDAO::DbUserDAO()
 
 int DbUserDAO::CreateAccount(const string& accountName, const string& password)
 {
+#ifndef _DEBUG
 	try
 	{
 		const MySqlConnection connection = this->getConnection();
@@ -42,12 +44,13 @@ int DbUserDAO::CreateAccount(const string& accountName, const string& password)
 		const DataErrorException ex = { e.what() };
 		throw ex;
 	}
-
+#endif
 	return 0;
 }
 
 int DbUserDAO::GetUserId(const string& accountName, const string& password) const
 {
+#ifndef _DEBUG
 	try
 	{
 		const MySqlConnection connection = this->getConnection();
@@ -72,10 +75,13 @@ int DbUserDAO::GetUserId(const string& accountName, const string& password) cons
 	{
 		throw DataErrorException{ e.what() };
 	}
+#endif
+	return 0;
 }
 
 User DbUserDAO::GetValidatedAccount(const string& accountName, const string& password, const bool createIfNotExist, bool& wasCreated)
 {
+#ifndef _DEBUG
 	try
 	{
 		const MySqlConnection connection = this->getConnection();
@@ -136,10 +142,13 @@ User DbUserDAO::GetValidatedAccount(const string& accountName, const string& pas
 	{
 		throw DataErrorException{ e.what() };
 	}
+#endif
+	return User{ 0, "" };
 }
 
 unordered_set<string> DbUserDAO::GetAccessTypes(const int userId) const
 {
+#ifndef _DEBUG
 	try
 	{
 		const MySqlConnection connection = this->getConnection();
@@ -164,6 +173,8 @@ unordered_set<string> DbUserDAO::GetAccessTypes(const int userId) const
 	{
 		throw DataErrorException{ e.what() };
 	}
+#endif
+	return {};
 }
 
 DbUserDAO::~DbUserDAO()

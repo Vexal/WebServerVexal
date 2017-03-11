@@ -26,7 +26,6 @@ private:
 	static std::map<std::string, SpecialOpcodes> specialInstructions;
 	static std::map<std::string, int> registers;
 	std::map<std::string, int> labels;
-	bool useHProtection;
 	bool isParsingData;
 	const bool createStack;
 	std::string errorText;
@@ -38,8 +37,8 @@ private:
 	CS350::ENDIANESS endianess;
 
 public:
-	Assembler(const std::string& assemblyCode, CS350::ENDIANESS endianess, bool useHProtection = false, bool createStack = false) :
-		useHProtection(useHProtection), isParsingData(false), createStack(createStack), assemblyCode(assemblyCode), hasExpandedCode(false), endianess(endianess) {}
+	Assembler(const std::string& assemblyCode, CS350::ENDIANESS endianess, bool createStack = false) :
+		isParsingData(false), createStack(createStack), assemblyCode(assemblyCode), hasExpandedCode(false), endianess(endianess) {}
 
 	std::string Assemble();
 	static std::string GenerateStackCode();

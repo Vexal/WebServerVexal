@@ -26,8 +26,7 @@ namespace CS350
 	{
 		CS_ORIGINAL,
 		CS_LITTLE_ENDIAN,
-		CS_BIG_ENDIAN,
-		CS_INDIAN
+		CS_BIG_ENDIAN
 	};
 }
 

@@ -52,7 +52,6 @@ bool HttpServer::initializeWebContent(const string& rootDirectory)
 	this->webApps["web"] = new WebPageApp(this);
 	//this->webApps["/vim"] = new VimWebApp(this);
 	this->webApps["/compile"] = new AssemblerWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
-	//this->webApps["/createaccount"] = new AccountCreateApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	this->webApps["/homeautomation"] = new HomeAutomationWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	this->webApps["/commentpost"] = new CommentWebApp(this, static_cast<WebPageApp*>(this->webApps["web"])->GetRootDirectory("Content/"));
 	return true;

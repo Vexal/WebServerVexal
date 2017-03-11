@@ -140,67 +140,6 @@ void Page::loadContent()
 	}
 }
 
-Page* Page::ClonePage(const vector<string>& replaceTokens, const vector<string>& replaceTexts) const
-{
-	string thisPage(this->content);
-
-	for (int a = 0; a < replaceTexts.size(); ++a)
-	{
-		const size_t ind = thisPage.find(replaceTokens[a]);
-		if (ind == string::npos)
-		{
-			continue;
-		}
-
-		thisPage.insert(ind + replaceTokens[a].length(), replaceTexts[a]);
-	}
-
-	Page* newPage = new Page(this->fullPath, this->name, thisPage);
-	newPage->contentType = this->contentType;
-	newPage->contentLength = thisPage.size();
-	newPage->valid = true;
-	newPage->pageType = this->pageType;
-
-	return newPage;
-}
-
-Page* Page::ClonePage(const string& replaceToken, const string& replaceText, const string& replaceToken2, const string& replaceText2) const
-{
-	string thisPage(this->content);
-
-	const size_t ind = thisPage.find(replaceToken);
-
-	thisPage.insert(ind, replaceText);
-
-	const size_t ind2 = thisPage.find(replaceToken2);
-
-	thisPage.insert(ind2, replaceText2);
-	Page* newPage = new Page(this->fullPath, this->name, thisPage);
-	newPage->contentType = this->contentType;
-	newPage->contentLength = thisPage.size();
-	newPage->valid = true;
-	newPage->pageType = this->pageType;
-
-	return newPage;
-}
-
-Page* Page::ClonePage(const string& replaceToken, const string& replaceText) const
-{
-	string thisPage(this->content);
-
-	const size_t ind = thisPage.find(replaceToken);
-
-	thisPage.insert(ind, replaceText);
-
-	Page* newPage = new Page(this->fullPath, this->name, thisPage);
-	newPage->contentType = this->contentType;
-	newPage->contentLength = thisPage.size();
-	newPage->valid = true;
-	newPage->pageType = this->pageType;
-
-	return newPage;
-}
-
 Page::~Page()
 {
 	delete[] this->content;

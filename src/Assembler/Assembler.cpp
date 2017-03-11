@@ -71,6 +71,10 @@ Instruction Assembler::parseLine(const string& line, int currentLine)
 	string instructionName;
 	lineStream >> instructionName;
 
+	if (currentLine == 69) {
+		int x = 0;
+		++x;
+	}
 	if (Assembler::isCommented(instructionName))
 	{
 		parsedInstruction.invalid = true;
@@ -110,8 +114,16 @@ Instruction Assembler::parseLine(const string& line, int currentLine)
 			}
 			else
 			{
-				stringstream nStream(line);
-				nStream >> parsedInstruction.data;
+				const auto ind = instructionName.find(':');
+				if (ind != string::npos)
+				{
+					parsedInstruction.invalid = true;
+				}
+				else
+				{
+					stringstream nStream(line);
+					nStream >> parsedInstruction.data;
+				}
 			}
 		}
 		else
@@ -245,12 +257,6 @@ bool Assembler::findLabels(string input)
 		if (ind != string::npos)
 		{
 			const string newLabel = nextLine.substr(0, ind);
-			if (this->useHProtection && newLabel.find('h') != string::npos)
-			{
-				this->errorText += "ERROR: label '" + newLabel + "' contains the letter 'h'.\n";
-				return false; 
-			}
-
 			this->labels[newLabel] = lineCount;
 		}
 		else
@@ -490,17 +496,6 @@ string Assembler::Assemble()
 		for (int a = 0; a < outputLines.size(); ++a)
 		{
 			outputFile << lineNumber++ << ": " << formatOutput(outputLines[a]) << ";" << endl;
-			stringstream nStream(outputLines[a]);
-			unsigned short nextLine;
-			nStream >> hex >> nextLine;
-			this->machineCode.push_back(nextLine);
-		}
-	}
-	else if (this->endianess == CS350::CS_INDIAN)
-	{
-		for (int a = 0; a < outputLines.size(); ++a)
-		{
-			outputFile << lineNumber++ << ": " << "eyy oh ya ya" << ";" << endl;
 			stringstream nStream(outputLines[a]);
 			unsigned short nextLine;
 			nStream >> hex >> nextLine;
