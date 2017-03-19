@@ -66,7 +66,6 @@ bool Server::checkForNewConnection()
 
 	if (clientSocket < 0 || clientSocket == INVALID_SOCKET)
 	{
-		cout << "inv" << endl;
 		closesocket2(clientSocket);
 		return false;
 	}
@@ -113,6 +112,10 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 	{
 		char bufferRcv[MAX_REQUEST_SIZE];
 		const auto recvLen = recv(clientSocket, bufferRcv, MAX_REQUEST_SIZE - 2, 0);
+		if (recvLen == SOCKET_ERROR)
+		{
+			log.error("Error recv from ip " + clientAddressString);
+		}
 		log.info("Accept successful from socket " + to_string(clientSocket) + " with " + to_string(recvLen) + " bytes from ip " + clientAddressString);
 
 		if (recvLen > 0)
@@ -145,6 +148,27 @@ void Server::receiveThenHandleClientRequest(SOCKET clientSocket, const string& c
 		else
 			break;
 	} while (keepAlive);
+
+#ifdef _WIN32
+	const auto ret = shutdown(clientSocket, SD_SEND);
+#else
+	const auto ret = shutdown(clientSocket, SHUT_WR);
+#endif
+	if (ret == SOCKET_ERROR)
+	{
+		closesocket2(clientSocket);
+		return;
+	}
+	char shutdownBuffer[MAX_REQUEST_SIZE];
+	long long shutdownRecvLen = -2;
+	do
+	{
+		shutdownRecvLen = recv(clientSocket, shutdownBuffer, MAX_REQUEST_SIZE - 2, 0);
+		if (shutdownRecvLen == SOCKET_ERROR)
+		{
+			log.error("failed to recv shutdown recv from " + clientAddressString);
+		}
+	} while (shutdownRecvLen > 0);
 
 	closesocket2(clientSocket);
 }

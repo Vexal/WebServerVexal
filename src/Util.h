@@ -28,6 +28,7 @@ namespace Util
 	std::string CurrentDateTime();
 	unsigned long long EpochTimeMillis();
 	std::string GetBase64String(const unsigned char* const inp, const unsigned int len);
+	std::string PrintMap(const std::unordered_map<std::string, std::string>& m);
 
 	const std::string base64_chars =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"

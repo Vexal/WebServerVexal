@@ -149,4 +149,15 @@ namespace Util
 		reverse(finalString.begin(), finalString.end());
 		return finalString;
 	}
+
+	string PrintMap(const unordered_map<string, string>& m)
+	{
+		string results = "";
+		for (const auto entry : m)
+		{
+			results += entry.first + ", " + entry.second + "\n";
+		}
+
+		return results;
+	}
 }

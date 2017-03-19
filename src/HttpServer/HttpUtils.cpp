@@ -54,9 +54,10 @@ namespace HttpUtils
 				size_t colonIndex = headerFields[i].find(':');
 				if (colonIndex > headerFields[i].length())
 				{
-					results.clear();
-					results[MALFORMED_REQUEST_FIELD] = request;
-					return results;
+					//results.clear();
+					//results[MALFORMED_REQUEST_FIELD] = request;
+					//return results;
+					continue;
 				}
 
 				string fieldName = headerFields[i].substr(0, colonIndex);

@@ -86,7 +86,7 @@ bool HttpServer::handleHTTPRequest(const string& request, SOCKET clientSocket, c
 	const string requestMethod = Util::get_with_default<string, string>(headers, HttpUtils::REQUEST_METHOD_FIELD, "");
 	if (requestMethod != "GET" && requestMethod != "POST")
 	{
-		this->log.error("Strange request method: " + requestMethod + " from ip " + clientAddressString);
+		this->log.error("Strange request method: " + requestMethod + " from ip " + clientAddressString + "\n\n" + Util::PrintMap(headers));
 		return false;
 	}
 
@@ -200,7 +200,6 @@ bool HttpServer::SendPage(const Page* const page, SOCKET clientSocket, int statu
 	}
 		
 	const auto sendAmount = send(clientSocket, finalPage.c_str(), finalPage.size(), 0);
-
 	if (sendAmount == SOCKET_ERROR || sendAmount < 0)
 	{
 		cout << "Send failed with error: " << endl;
